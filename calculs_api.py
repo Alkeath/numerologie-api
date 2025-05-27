@@ -73,6 +73,151 @@ def ReductionForcee(nombre):
         nombre = sum(int(c) for c in str(nombre))
     return nombre
 
+def calcul_grille_intensite(texte, prefixe, lignes):
+    compteur = {i: 0 for i in range(1, 10)}
+    total_lettres = 0
+
+    for lettre in texte:
+        if lettre.isalpha():
+            val = valeur_lettre(lettre)
+            if val > 0:
+                compteur[val] += 1
+                total_lettres += 1
+
+    diagonale_asc = compteur[7] + compteur[5] + compteur[3]
+    diagonale_desc = compteur[1] + compteur[5] + compteur[9]
+    seuil_exces = (total_lettres / 9) * 1.2
+    manquants = [str(i) for i in range(1, 10) if compteur[i] == 0]
+    exces = [str(i) for i in range(1, 10) if compteur[i] > seuil_exces]
+
+    # ➕ Mise à jour dans `lignes`
+    for ligne in lignes:
+        cle = ligne[0].strip()
+        if cle == f"NombreLettresTotal_{prefixe}":
+            ligne[1] = str(total_lettres)
+        for i in range(1, 10):
+            if cle == f"NombreDe{i}_{prefixe}":
+                ligne[1] = str(compteur[i])
+        if cle == f"IntensiteDiagonaleAscendante_{prefixe}":
+            ligne[1] = str(diagonale_asc)
+        elif cle == f"IntensiteDiagonaleDescendante_{prefixe}":
+            ligne[1] = str(diagonale_desc)
+        elif cle == f"IntensiteSeuilExces_{prefixe}":
+            ligne[1] = f"{seuil_exces:.2f}"
+        elif cle == f"NombresManquants_{prefixe}":
+            ligne[1] = ", ".join(manquants)
+        elif cle == f"NombresEnExces_{prefixe}":
+            ligne[1] = ", ".join(exces)
+
+    # ➕ Retourner un dictionnaire pour `data.update(...)`
+    resultat = {
+        f"NombreLettresTotal_{prefixe}": str(total_lettres),
+        f"IntensiteDiagonaleAscendante_{prefixe}": str(diagonale_asc),
+        f"IntensiteDiagonaleDescendante_{prefixe}": str(diagonale_desc),
+        f"IntensiteSeuilExces_{prefixe}": f"{seuil_exces:.2f}",
+        f"NombresManquants_{prefixe}": ", ".join(manquants),
+        f"NombresEnExces_{prefixe}": ", ".join(exces),
+    }
+    for i in range(1, 10):
+        resultat[f"NombreDe{i}_{prefixe}"] = str(compteur[i])
+
+    return resultat
+
+plan_expression = {
+    "MenCar": list("A"),
+    "MenMut": list("HJNP"),
+    "MenFix": list("GL"),
+    "PhyCar": list("E"),
+    "PhyMut": list("W"),
+    "PhyFix": list("DM"),
+    "EmoCar": list("ORIZ"),
+    "EmoMut": list("BSTX"),
+    "EmoFix": [],
+    "IntCar": list("K"),
+    "IntMut": list("FQUY"),
+    "IntFix": list("CV"),
+}
+
+def calcul_plan_expression(texte, suffixe):
+    texte = texte.replace(" ", "").upper()
+    resultats = {cle + f"_{suffixe}": 0 for cle in plan_expression}
+
+    for lettre in texte:
+        for cle, lettres in plan_expression.items():
+            if lettre in lettres:
+                resultats[cle + f"_{suffixe}"] += 1
+
+    for domaine in ["Men", "Phy", "Emo", "Int"]:
+        resultats[f"{domaine}Tot_{suffixe}"] = sum(
+            resultats[f"{domaine}{typ}_{suffixe}"] for typ in ["Car", "Mut", "Fix"]
+        )
+
+    for typ in ["Car", "Mut", "Fix"]:
+        resultats[f"{typ}Tot_{suffixe}"] = sum(
+            resultats[f"{domaine}{typ}_{suffixe}"] for domaine in ["Men", "Phy", "Emo", "Int"]
+        )
+
+    return resultats
+
+
+# --- Détection des nombres maîtres, sous-nombres, nombres karmiques ---
+def calcul_nombres_speciaux(data, mode="UnPrenom"):
+    nombres_maitres_fixes = {11, 22, 33, 44, 55, 66, 77, 88, 99}
+    nombres_karmiques_fixes = {13, 14, 16, 19}
+
+    if mode == "UnPrenom":
+        cles = [
+            "NbExpTotal_UnPrenom", "NbReaTotal_UnPrenom", "NbAmeTotal_UnPrenom",
+            "NbActifTotal_UnPrenom", "NbCdVTotal"
+        ]
+    elif mode == "TousPrenoms":
+        cles = [
+            "NbExpTotal_TousPrenoms", "NbReaTotal_TousPrenoms", "NbAmeTotal_TousPrenoms",
+            "NbActifTotal_TousPrenoms", "NbCdVTotal"
+        ]
+    else:
+        return [], [], []
+
+    # Extraction des sous-nombres
+    sous_nombres = set()
+    for cle in cles:
+        val = data.get(cle)
+        if val and val.isdigit():
+            sous_nombres.add(int(val))
+
+    # Détection des maîtres
+    def est_maitre(n):
+        return (
+            n in nombres_maitres_fixes
+            or (sum(int(c) for c in str(n)) % 11 == 0 and sum(int(c) for c in str(n)) > 0)
+        )
+
+    nombres_maitres = sorted({n for n in sous_nombres if est_maitre(n)})
+    nombres_karmiques = sorted({n for n in sous_nombres if n in nombres_karmiques_fixes})
+
+    return sorted(sous_nombres), nombres_maitres, nombres_karmiques
+
+# --- Formatage de la liste des nombres maîtres, sous-nombres, nombres karmiques pour la charte
+def formater_liste(liste):
+    """Retourne une chaîne triée de nombres uniques séparés par virgules."""
+    return ", ".join(str(n) for n in sorted(set(liste)))
+
+
+# --- Ajuste la valeur selon l’activation des nombres maîtres 11 et 22 ---
+def ajuster_nombre_maitre(valeur_str, activer_11=False, activer_22=False):
+    try:
+        val = int(valeur_str)
+    except:
+        return valeur_str  # ne rien faire si ce n’est pas un nombre
+
+    if val == 11:
+        return 11 if activer_11 else 2
+    elif val == 22:
+        return 22 if activer_22 else 4
+    return val
+
+
+# --- Présentation des résultats pour la charte numérologique en format tot/reduit ---
 def afficher_charte(total, reduit):
     return str(reduit) if total == reduit else f"{total}/{reduit}"
 
