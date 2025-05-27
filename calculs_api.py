@@ -225,168 +225,59 @@ def afficher_charte(total, reduit):
 
 
 
+def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
+    # --- Nettoyage et mise en forme des prénoms et nom depuis les données du formulaire ---
+    prenom_principal = nettoyer_chaine_nom_prenom(data.get("PrenomPremier_Formulaire", ""), majuscules=True)
+    prenoms_secondaires = nettoyer_chaine_nom_prenom(data.get("PrenomsSecondaires_Formulaire", ""), majuscules=True)
+    nom = nettoyer_chaine_nom_prenom(data.get("Nom_Formulaire", ""), majuscules=True)
 
+    # --- Construction de la chaîne complète des prénoms (prénom principal + secondaires) ---
+    prenoms_complets = (prenom_principal + " " + prenoms_secondaires).strip() if prenoms_secondaires else prenom_principal
 
+    # --- Construction des chaînes prénom + nom (une version avec un seul prénom, une autre avec tous) ---
+    prenom_nom_unprenom = f"{prenom_principal} {nom}".strip()
+    prenom_nom_tousprenoms = f"{prenoms_complets} {nom}".strip()
 
+    # --- Normalisation (suppression des accents et caractères spéciaux) pour traitement ultérieur cohérent ---
+    nom_normalise = normaliser_chaine(nom)
+    prenom_premier_normalise = normaliser_chaine(prenom_principal)
+    prenoms_complets_normalise = normaliser_chaine(prenoms_complets)
 
-def traitement_numerologie_depuis_json(data):
-    # --- Logiques à partir du formulaire ---
-    somme_11 = sum(convertir_en_int(data.get(f"QuestionAct11_{i}_Formulaire", 0)) for i in range(1, 4))
-    somme_22 = sum(convertir_en_int(data.get(f"QuestionAct22_{i}_Formulaire", 0)) for i in range(1, 4))
-    somme_prenoms = sum(convertir_en_int(data.get(k, 0)) for k in ["QuestionExp_Formulaire", "QuestionRea_Formulaire", "QuestionAme_Formulaire"])
+    # --- Stockage des différentes variantes dans le dictionnaire data ---
+    data.update({
+        "PrenomPremier": prenom_principal,
+        "PrenomsComplets": prenoms_complets,
+        "Nom": nom,
+        "PrenomNom_UnPrenom": prenom_nom_unprenom,
+        "PrenomNom_TousPrenoms": prenom_nom_tousprenoms,
+        "Nom_normalise": nom_normalise,
+        "PrenomPremier_normalise": prenom_premier_normalise,
+        "PrenomsComplets_normalise": prenoms_complets_normalise
+    })
 
-    data["QuestionAct11_Somme"] = str(somme_11)
-    data["QuestionAct22_Somme"] = str(somme_22)
-    data["QuestionsPrenomsSomme"] = str(somme_prenoms)
-    data["TousLesPrenoms"] = "oui" if somme_prenoms >= 0 else "non"
-    data["ActNbMaitre11"] = "oui" if somme_11 >= 2 else "non"
-    data["ActNbMaitre22"] = "oui" if somme_22 >= 2 else "non"
+    # --- Calcul du Chemin de Vie : somme des chiffres de la date de naissance complète (jjmmaaaa) ---
+    data["NbCdV_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in data["DateDeNaissance_Formulaire"] if c.isdigit()))
 
-    # --- Champs noms/prénoms nettoyés ---
-    secondaire = data.get("PrenomsSecondaires_Formulaire", "").strip()
-    data["PrenomsComplets_Formulaire"] = f"{data.get('PrenomPremier_Formulaire', '').strip()} {secondaire}".strip()
-    data["Nom"] = nettoyer_chaine_nom_prenom(data.get("Nom_Formulaire", ""), majuscules=True)
-    data["PrenomPremier"] = nettoyer_chaine_nom_prenom(data.get("PrenomPremier_Formulaire", ""))
-    data["PrenomsComplets"] = nettoyer_chaine_nom_prenom(data.get("PrenomsComplets_Formulaire", ""))
-    data["PrenomNom_UnPrenom"] = f"{data['PrenomPremier']} {data['Nom']}".strip()
-    data["PrenomNom_TousPrenoms"] = f"{data['PrenomsComplets']} {data['Nom']}".strip()
+    # --- Calcul de l’Expression : somme des lettres du prénom + nom (version 1 = prénom principal) ---
+    data["NbExp_UnPrenom_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenom_nom_unprenom if c.isalpha()))
 
-    for champ in ["Nom", "PrenomPremier", "PrenomsComplets"]:
-        data[f"{champ}_normalise"] = normaliser_chaine(data[champ])
+    # --- Calcul de la Réalisation : somme des lettres du nom + prénom (mêmes lettres que l’Expression) ---
+    data["NbRea_UnPrenom_AvantTestAct"] = ReductionNombre(
+        sum(valeur_lettre(c) for c in nom if c.isalpha()) +
+        sum(valeur_lettre(c) for c in prenom_principal if c.isalpha())
+    )
 
-    textes = {
-        "UnPrenom": (data["PrenomPremier_normalise"] + data["Nom_normalise"]).replace(" ", ""),
-        "TousPrenoms": (data["PrenomsComplets_normalise"] + data["Nom_normalise"]).replace(" ", "")
-    }
+    # --- Calcul de l’Âme : somme des voyelles du prénom principal ---
+    data["NbAme_UnPrenom_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenom_principal if est_voyelle(c)))
 
-    for prefixe in ["UnPrenom", "TousPrenoms"]:
-        texte = textes[prefixe]
-        data.update(calcul_grille_intensite(texte, prefixe, []))
-        plan = calcul_plan_expression(texte, prefixe)
-        if isinstance(plan, dict):
-            data.update(plan)
+    # --- Calcul de l’Expression (version 2) : avec tous les prénoms ---
+    data["NbExp_TousPrenoms_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenom_nom_tousprenoms if c.isalpha()))
 
-    chiffres_date = [int(c) for c in data.get("DateDeNaissance_Formulaire", "") if c.isdigit()]
-    total_cdv = sum(chiffres_date)
-    reduit_cdv = ReductionNombre(total_cdv)
-    data["NbCdVTotal"] = str(total_cdv)
-    data["NbCdV_AvantTestAct"] = str(reduit_cdv)
+    # --- Calcul de la Réalisation (version 2) : avec tous les prénoms ---
+    data["NbRea_TousPrenoms_AvantTestAct"] = ReductionNombre(
+        sum(valeur_lettre(c) for c in nom if c.isalpha()) +
+        sum(valeur_lettre(c) for c in prenoms_complets if c.isalpha())
+    )
 
-    for prefixe in ["UnPrenom", "TousPrenoms"]:
-        texte = textes[prefixe]
-        total_exp = total_ame = total_rea = 0
-        for lettre in texte:
-            if lettre.isalpha():
-                val = valeur_lettre(lettre)
-                total_exp += val
-                if est_voyelle(lettre):
-                    total_ame += val
-                else:
-                    total_rea += val
-        data[f"NbExpTotal_{prefixe}"] = str(total_exp)
-        data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
-        data[f"NbReaTotal_{prefixe}"] = str(total_rea)
-        data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
-        data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
-        data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
-
-        prenom_txt = data["PrenomPremier_normalise"] if prefixe == "UnPrenom" else data["PrenomsComplets_normalise"]
-        total_actif = sum(valeur_lettre(l) for l in prenom_txt if l.isalpha())
-        data[f"NbActifTotal_{prefixe}"] = str(total_actif)
-        data[f"NbActif_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_actif))
-        data[f"NbActif_Charte_{prefixe}"] = afficher_charte(total_actif, ReductionNombre(total_actif))
-
-        for cle_base in ["NbExp", "NbAme", "NbRea"]:
-            total = data[f"{cle_base}Total_{prefixe}"]
-            reduit = data[f"{cle_base}_{prefixe}_AvantTestAct"]
-            data[f"{cle_base}_Charte_{prefixe}_AvantTestAct"] = afficher_charte(total, reduit)
-
-    texte_nom = data.get("Nom_normalise", "")
-    total_h = sum(valeur_lettre(l) for l in texte_nom if l.isalpha())
-    reduit_h = ReductionNombre(total_h)
-    data["NbHerediteTotal"] = str(total_h)
-    data["NbHeredite"] = str(reduit_h)
-    data["NbHeredite_Charte"] = afficher_charte(total_h, reduit_h)
-
-    utiliser_tous = data["TousLesPrenoms"].lower() == "oui"
-    activer_11 = data["ActNbMaitre11"].lower() == "oui"
-    activer_22 = data["ActNbMaitre22"].lower() == "oui"
-    suffixe = "TousPrenoms" if utiliser_tous else "UnPrenom"
-
-    def get_val(cle): return data.get(f"{cle}_{suffixe}_AvantTestAct", "")
-    def get_total(cle): return data.get(f"{cle}Total_{suffixe}", "")
-
-    for cle_base in ["NbExp", "NbRea", "NbAme", "NbActif"]:
-        data[cle_base] = str(ajuster_nombre_maitre(get_val(cle_base), activer_11, activer_22))
-        data[f"{cle_base}Total"] = get_total(cle_base)
-        data[f"{cle_base}_Charte"] = afficher_charte(data[f"{cle_base}Total"], data[cle_base])
-
-    data["NbCdV"] = str(ajuster_nombre_maitre(data["NbCdV_AvantTestAct"], activer_11, activer_22))
-    data["NbCdV_Charte"] = afficher_charte(data["NbCdVTotal"], data["NbCdV"])
-    data["NbActif_Charte"] = data[f"NbActif_Charte_{suffixe}"]
-    data["NbHeredite_Charte"] = afficher_charte(data["NbHerediteTotal"], data["NbHeredite"])
-
-    for i in range(1, 10):
-        data[f"NombreDe{i}"] = data.get(f"NombreDe{i}_{suffixe}", "")
-
-    for nom in [
-        "NombreLettresTotal", "IntensiteDiagonaleAscendante", "IntensiteDiagonaleDescendante",
-        "IntensiteSeuilExces", "NombresEnExces", "NombresManquants"
-    ]:
-        data[nom] = data.get(f"{nom}_{suffixe}", "")
-
-    for plan in [
-        "MenCar", "MenMut", "MenFix", "MenTot",
-        "PhyCar", "PhyMut", "PhyFix", "PhyTot",
-        "EmoCar", "EmoMut", "EmoFix", "EmoTot",
-        "IntCar", "IntMut", "IntFix", "IntTot",
-        "CarTot", "MutTot", "FixTot"
-    ]:
-        data[plan] = data.get(f"{plan}_{suffixe}", "")
-
-    try:
-        date_naissance = datetime.strptime(data["DateDeNaissance_Formulaire"], "%d/%m/%Y")
-        jour, mois, annee = date_naissance.day, date_naissance.month, date_naissance.year
-        jour_r, mois_r, annee_r = ReductionNombre(jour), ReductionNombre(mois), ReductionNombre(annee)
-
-        data["JourDeNaissanceTot"] = str(jour)
-        data["MoisDeNaissanceTot"] = str(mois)
-        data["AnneeDeNaissanceTot"] = str(annee)
-        data["JourDeNaissance"] = str(jour_r)
-        data["MoisDeNaissance"] = str(mois_r)
-        data["AnneeDeNaissance"] = str(annee_r)
-        data["JourDeNaissance_Charte"] = afficher_charte(jour, jour_r)
-        data["MoisDeNaissance_Charte"] = afficher_charte(mois, mois_r)
-        data["AnneeDeNaissance_Charte"] = afficher_charte(annee, annee_r)
-
-        data["CycleFormatif"] = str(ReductionForcee(mois))
-        data["CycleProductif"] = str(ReductionForcee(jour))
-        data["CycleMoisson"] = str(ReductionForcee(annee))
-
-        p1 = ReductionForcee(jour + mois)
-        p2 = ReductionForcee(jour + annee)
-        p3 = ReductionForcee(p1 + p2)
-        p4 = ReductionForcee(mois + annee)
-        data.update({
-            "Periode1": str(p1), "Periode2": str(p2), "Periode3": str(p3), "Periode4": str(p4),
-            "AnneePersonnelle": str(ReductionForcee(jour + mois + date.today().year)),
-            "Age": str(date.today().year - annee - ((date.today().month, date.today().day) < (mois, jour))),
-            "DefiMineur1": str(ReductionForcee(abs(jour - mois))),
-            "DefiMineur2": str(ReductionForcee(abs(jour_r - annee_r))),
-            "DefiMajeur": str(ReductionForcee(abs(ReductionForcee(abs(jour - mois)) - ReductionForcee(abs(jour_r - annee_r)))))
-        })
-    except Exception as e:
-        data["Erreur_DateNaissance"] = str(e)
-
-    for mode in ["UnPrenom", "TousPrenoms"]:
-        sous, maitres, karmiques = calcul_nombres_speciaux(data, mode)
-        data[f"SousNombres_{mode}"] = formater_liste(sous)
-        data[f"NombresMaitres_{mode}"] = formater_liste(maitres)
-        data[f"NombresKarmiques_{mode}"] = formater_liste(karmiques)
-
-    final = "TousPrenoms" if utiliser_tous else "UnPrenom"
-    for key in ["SousNombres", "NombresMaitres", "NombresKarmiques"]:
-        data[key] = data[f"{key}_{final}"]
-        data[f"{key}_Charte"] = data[key]
-
-    return data
+    # --- Calcul de l’Âme (version 2) : voyelles de tous les prénoms ---
+    data["NbAme_TousPrenoms_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenoms_complets if est_voyelle(c)))
