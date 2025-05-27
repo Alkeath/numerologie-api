@@ -7,8 +7,9 @@ app = FastAPI()
 # Pour autoriser les appels du frontend (ex : vercel.app)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Tu pourras restreindre à ton domaine plus tard
-    allow_methods=["POST"],
+    allow_origins=["https://test-recup.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
