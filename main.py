@@ -31,4 +31,7 @@ app.add_middleware(
 async def generer_rapport(request: Request):
     data = await request.json()
     resultats = traitement_numerologie_depuis_json(data)
-    return resultats
+    return {
+        "message": "Calcul terminé",
+        "donnees": resultats
+    }
