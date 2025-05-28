@@ -262,6 +262,9 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["PrenomPremier_normalise"] = PrenomPremier_normalise
     data["PrenomsComplets_normalise"] = PrenomsComplets_normalise
     data["Nom_normalise"] = Nom_normalise
+    data["PrenomNom_UnPrenom"] = f"{data['PrenomPremier']} {data['Nom']}"
+    data["PrenomNom_TousPrenoms"] = f"{data['PrenomsComplets']} {data['Nom']}"
+
 
     # Constitution de la date de naissance au format JJ/MM/AAAA
     if Jour_Formulaire and Mois_Formulaire and Annee_Formulaire:
@@ -279,8 +282,10 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     #Calcul des nombres d'Expression, Réalisation, Ame avant test activation Nb Maîtres
     
     textes = {
-        "UnPrenom": (data["PrenomPremier_normalise"] + data["Nom_normalise"]).replace(" ", ""),
-        "TousPrenoms": (data["PrenomsComplets_normalise"] + data["Nom_normalise"]).replace(" ", "")
+        "UnPrenom": normaliser_chaine(data["PrenomNom_UnPrenom"]).replace(" ", ""),
+        "TousPrenoms": normaliser_chaine(data["PrenomNom_TousPrenoms"]).replace(" ", "")
+    }
+
     }
     
     for prefixe in ["UnPrenom", "TousPrenoms"]:
