@@ -225,59 +225,96 @@ def afficher_charte(total, reduit):
 
 
 
+
+
+
+
+
+
+
 def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
-    # --- Nettoyage et mise en forme des prénoms et nom depuis les données du formulaire ---
-    prenom_principal = nettoyer_chaine_nom_prenom(data.get("PrenomPremier_Formulaire", ""), majuscules=True)
-    prenoms_secondaires = nettoyer_chaine_nom_prenom(data.get("PrenomsSecondaires_Formulaire", ""), majuscules=True)
-    nom = nettoyer_chaine_nom_prenom(data.get("Nom_Formulaire", ""), majuscules=True)
+    
+    # Récupération des champs bruts depuis le formulaire
+    PrenomPremier_Formulaire = data.get("PrenomPremier_Formulaire", "").strip()
+    PrenomsSecondaires_Formulaire = data.get("PrenomsSecondaires_Formulaire", "").strip()
+    Nom_Formulaire = data.get("Nom_Formulaire", "").strip()
+    Jour_Formulaire = data.get("Jour_Formulaire", "").strip()
+    Mois_Formulaire = data.get("Mois_Formulaire", "").strip()
+    Annee_Formulaire = data.get("Annee_Formulaire", "").strip()
 
-    # --- Construction de la chaîne complète des prénoms (prénom principal + secondaires) ---
-    prenoms_complets = (prenom_principal + " " + prenoms_secondaires).strip() if prenoms_secondaires else prenom_principal
+    # Étape 1 : nettoyage
+    PrenomPremier = nettoyer_chaine_nom_prenom(PrenomPremier_Formulaire, majuscules=False)
+    PrenomsComplets = f"{PrenomPremier} {nettoyer_chaine_nom_prenom(PrenomsSecondaires_Formulaire, majuscules=False)}".strip()
+    Nom = nettoyer_chaine_nom_prenom(Nom_Formulaire, majuscules=True)
 
-    # --- Construction des chaînes prénom + nom (une version avec un seul prénom, une autre avec tous) ---
-    prenom_nom_unprenom = f"{prenom_principal} {nom}".strip()
-    prenom_nom_tousprenoms = f"{prenoms_complets} {nom}".strip()
+    # Étape 2 : normalisation
+    PrenomPremier_normalise = normaliser_chaine(PrenomPremier)
+    PrenomsComplets_normalise = normaliser_chaine(PrenomsComplets)
+    Nom_normalise = normaliser_chaine(Nom)
 
-    # --- Normalisation (suppression des accents et caractères spéciaux) pour traitement ultérieur cohérent ---
-    nom_normalise = normaliser_chaine(nom)
-    prenom_premier_normalise = normaliser_chaine(prenom_principal)
-    prenoms_complets_normalise = normaliser_chaine(prenoms_complets)
+  
 
-    # --- Stockage des différentes variantes dans le dictionnaire data ---
-    data.update({
-        "PrenomPremier": prenom_principal,
-        "PrenomsComplets": prenoms_complets,
-        "Nom": nom,
-        "PrenomNom_UnPrenom": prenom_nom_unprenom,
-        "PrenomNom_TousPrenoms": prenom_nom_tousprenoms,
-        "Nom_normalise": nom_normalise,
-        "PrenomPremier_normalise": prenom_premier_normalise,
-        "PrenomsComplets_normalise": prenoms_complets_normalise
-    })
 
-    # --- Calcul du Chemin de Vie : somme des chiffres de la date de naissance complète (jjmmaaaa) ---
-    data["NbCdV_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in data["DateDeNaissance_Formulaire"] if c.isdigit()))
+    # Sauvegarde dans les variables de travail
+    data["PrenomPremier"] = PrenomPremier
+    data["PrenomsComplets"] = PrenomsComplets
+    data["Nom"] = Nom
+    data["PrenomPremier_normalise"] = PrenomPremier_normalise
+    data["PrenomsComplets_normalise"] = PrenomsComplets_normalise
+    data["Nom_normalise"] = Nom_normalise
 
-    # --- Calcul de l’Expression : somme des lettres du prénom + nom (version 1 = prénom principal) ---
-    data["NbExp_UnPrenom_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenom_nom_unprenom if c.isalpha()))
+    # Constitution de la date de naissance au format JJ/MM/AAAA
+    if Jour_Formulaire and Mois_Formulaire and Annee_Formulaire:
+        data["DateDeNaissance"] = f"{Jour_Formulaire.zfill(2)}/{Mois_Formulaire.zfill(2)}/{Annee_Formulaire}"
+    else:
+        data["DateDeNaissance"] = ""
 
-    # --- Calcul de la Réalisation : somme des lettres du nom + prénom (mêmes lettres que l’Expression) ---
-    data["NbRea_UnPrenom_AvantTestAct"] = ReductionNombre(
-        sum(valeur_lettre(c) for c in nom if c.isalpha()) +
-        sum(valeur_lettre(c) for c in prenom_principal if c.isalpha())
-    )
+    # Calcul du chemin de vie
+    chiffres_date = [int(c) for c in data.get("DateDeNaissance", "") if c.isdigit()]
+    total_cdv = sum(chiffres_date)
+    reduit_cdv = ReductionNombre(total_cdv)
+    data["NbCdVTotal"] = str(total_cdv)
+    data["NbCdV_AvantTestAct"] = str(reduit_cdv)
 
-    # --- Calcul de l’Âme : somme des voyelles du prénom principal ---
-    data["NbAme_UnPrenom_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenom_principal if est_voyelle(c)))
+    #Calcul des nombres d'Expression, Réalisation, Ame avant test activation Nb Maîtres
+    
+    textes = {
+        "UnPrenom": (data["PrenomPremier_normalise"] + data["Nom_normalise"]).replace(" ", ""),
+        "TousPrenoms": (data["PrenomsComplets_normalise"] + data["Nom_normalise"]).replace(" ", "")
+    }
+    
+    for prefixe in ["UnPrenom", "TousPrenoms"]:
+        texte = textes[prefixe]
+        total_exp = total_ame = total_rea = 0
+        for lettre in texte:
+            if lettre.isalpha():
+                val = valeur_lettre(lettre)
+                total_exp += val
+                if est_voyelle(lettre):
+                    total_ame += val
+                else:
+                    total_rea += val
+        data[f"NbExpTotal_{prefixe}"] = str(total_exp)
+        data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
+        data[f"NbReaTotal_{prefixe}"] = str(total_rea)
+        data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
+        data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
+        data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
 
-    # --- Calcul de l’Expression (version 2) : avec tous les prénoms ---
-    data["NbExp_TousPrenoms_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenom_nom_tousprenoms if c.isalpha()))
+    # Détection de la présence d’un 11 ou 22 parmi les 4 nombres principaux
+    valeurs = [
+        data.get("NbCdV_AvantTestAct", ""),
+        data.get("NbExp_UnPrenom_AvantTestAct", ""),
+        data.get("NbRea_UnPrenom_AvantTestAct", ""),
+        data.get("NbAme_UnPrenom_AvantTestAct", "")
+    ]
 
-    # --- Calcul de la Réalisation (version 2) : avec tous les prénoms ---
-    data["NbRea_TousPrenoms_AvantTestAct"] = ReductionNombre(
-        sum(valeur_lettre(c) for c in nom if c.isalpha()) +
-        sum(valeur_lettre(c) for c in prenoms_complets if c.isalpha())
-    )
+    data["Presence11"] = "oui" if "11" in valeurs else "non"
+    data["Presence22"] = "oui" if "22" in valeurs else "non"
 
-    # --- Calcul de l’Âme (version 2) : voyelles de tous les prénoms ---
-    data["NbAme_TousPrenoms_AvantTestAct"] = ReductionNombre(sum(valeur_lettre(c) for c in prenoms_complets if est_voyelle(c)))
+
+
+def traitement_etape_1(data):
+    lignes = []  # pas utilisé ici mais conservé pour cohérence future
+    etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
+    return data
