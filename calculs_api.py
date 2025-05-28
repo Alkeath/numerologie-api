@@ -231,7 +231,8 @@ def afficher_charte(total, reduit):
 
 
 
-
+# Etape 1 : traiement des données entrées, calculs, jusqu'aux qestions pour savoir
+# si le nombres maîtres sont activés où pas s'il y a des 11 ou 22
 def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
     
     # Récupération des champs bruts depuis le formulaire
@@ -318,8 +319,51 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["Presence22"] = "oui" if "22" in valeurs else "non"
 
 
-
+#fonction temporaire de test de l'étape 1
 def traitement_etape_1(data):
     lignes = []  # pas utilisé ici mais conservé pour cohérence future
     etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     return data
+
+
+
+#Etape 2 : en fonction des réponses aux quesetions sur  l'activation des nombres maîtres
+# on met à jour CdV, Exp, Rea, Ame
+def etape_2_appliquer_reponses_activation_maitres(donnees):
+    """
+    Applique les réponses de l'utilisateur sur l'activation des nombres maîtres 11 et 22,
+    en ajustant les variables *_ApresTestAct à partir des *_AvantTestAct.
+    - Si 11 désactivé, il devient 2.
+    - Si 22 désactivé, il devient 4.
+    """
+    def ajuster_valeur(valeur_str, act11, act22):
+        try:
+            valeur = int(valeur_str)
+        except:
+            return valeur_str  # Retourne la valeur telle quelle si ce n’est pas un entier
+        if valeur == 11 and act11 == "non":
+            return 2
+        elif valeur == 22 and act22 == "non":
+            return 4
+        else:
+            return valeur
+
+    act11 = donnees.get("ActNbMaitre11", "non")
+    act22 = donnees.get("ActNbMaitre22", "non")
+
+    # Cas Chemin de Vie (pas de distinction prénoms)
+    donnees["NbCdV_ApresTestAct"] = ajuster_valeur(
+        donnees.get("NbCdV_AvantTestAct", ""), act11, act22
+    )
+
+    # Cas Expression, Réalisation, Âme — Un Prénom
+    for nom in ["Exp", "Rea", "Ame"]:
+        cle_avant = f"Nb{nom}_UnPrenom_AvantTestAct"
+        cle_apres = f"Nb{nom}_UnPrenom_ApresTestAct"
+        donnees[cle_apres] = ajuster_valeur(donnees.get(cle_avant, ""), act11, act22)
+
+    # Cas Expression, Réalisation, Âme — Tous les Prénoms
+    for nom in ["Exp", "Rea", "Ame"]:
+        cle_avant = f"Nb{nom}_TousPrenoms_AvantTestAct"
+        cle_apres = f"Nb{nom}_TousPrenoms_ApresTestAct"
+        donnees[cle_apres] = ajuster_valeur(donnees.get(cle_avant, ""), act11, act22)
