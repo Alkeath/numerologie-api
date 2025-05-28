@@ -253,9 +253,6 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     PrenomsComplets_normalise = normaliser_chaine(PrenomsComplets)
     Nom_normalise = normaliser_chaine(Nom)
 
-  
-
-
     # Sauvegarde dans les variables de travail
     data["PrenomPremier"] = PrenomPremier
     data["PrenomsComplets"] = PrenomsComplets
@@ -265,7 +262,6 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["Nom_normalise"] = Nom_normalise
     data["PrenomNom_UnPrenom"] = f"{data['PrenomPremier']} {data['Nom']}"
     data["PrenomNom_TousPrenoms"] = f"{data['PrenomsComplets']} {data['Nom']}"
-
 
     # Constitution de la date de naissance au format JJ/MM/AAAA
     if Jour_Formulaire and Mois_Formulaire and Annee_Formulaire:
@@ -281,14 +277,11 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["NbCdV_AvantTestAct"] = str(reduit_cdv)
 
     #Calcul des nombres d'Expression, Réalisation, Ame avant test activation Nb Maîtres
-    
     textes = {
         "UnPrenom": normaliser_chaine(data["PrenomNom_UnPrenom"]).replace(" ", ""),
         "TousPrenoms": normaliser_chaine(data["PrenomNom_TousPrenoms"]).replace(" ", "")
     }
 
-    
-    
     for prefixe in ["UnPrenom", "TousPrenoms"]:
         texte = textes[prefixe]
         total_exp = total_ame = total_rea = 0
@@ -314,22 +307,17 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         data.get("NbRea_UnPrenom_AvantTestAct", ""),
         data.get("NbAme_UnPrenom_AvantTestAct", "")
     ]
-
     data["Presence11"] = "oui" if "11" in valeurs else "non"
     data["Presence22"] = "oui" if "22" in valeurs else "non"
 
 
-#fonction temporaire de test de l'étape 1
-def traitement_etape_1(data):
-    lignes = []  # pas utilisé ici mais conservé pour cohérence future
-    etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
-    return data
 
 
 
 #Etape 2 : en fonction des réponses aux quesetions sur  l'activation des nombres maîtres
 # on met à jour CdV, Exp, Rea, Ame
 def etape_2_appliquer_reponses_activation_maitres(donnees):
+    
     """
     Applique les réponses de l'utilisateur sur l'activation des nombres maîtres 11 et 22,
     en ajustant les variables *_ApresTestAct à partir des *_AvantTestAct.
@@ -367,3 +355,23 @@ def etape_2_appliquer_reponses_activation_maitres(donnees):
         cle_avant = f"Nb{nom}_TousPrenoms_AvantTestAct"
         cle_apres = f"Nb{nom}_TousPrenoms_ApresTestAct"
         donnees[cle_apres] = ajuster_valeur(donnees.get(cle_avant, ""), act11, act22)
+
+
+#fonctions pour lancer les scripts des étapes depuis main.py
+def traitement_etape_1(data):
+    lignes = []  # pas utilisé ici mais conservé pour cohérence future
+    etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
+    return data
+
+def traitement_etape_2(donnees):
+    """
+    Étape 2 : applique les réponses de l'utilisateur concernant l'activation
+    des nombres maîtres et le choix des prénoms. Met à jour les variables *_ApresTestAct.
+    """
+    # Par sécurité, on vérifie que les clés sont présentes, sinon on met des valeurs par défaut
+    donnees["ActNbMaitre11"] = donnees.get("ActNbMaitre11", "non")
+    donnees["ActNbMaitre22"] = donnees.get("ActNbMaitre22", "non")
+    donnees["QuestionsPrenomsSomme"] = donnees.get("QuestionsPrenomsSomme", 0)
+    etape_2_appliquer_reponses_activation_maitres(donnees)
+    return donnees
+
