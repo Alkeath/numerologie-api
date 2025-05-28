@@ -300,12 +300,12 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
                 else:
                     total_rea += val
         data[f"NbExpTotal_{prefixe}"] = str(total_exp)
-        data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
         data[f"NbReaTotal_{prefixe}"] = str(total_rea)
+        data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
         data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
-        data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
         data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
-
+        data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
+        
     # Détection de la présence d’un 11 ou 22 parmi les 4 nombres principaux
     valeurs = [
         data.get("NbCdV_AvantTestAct", ""),
