@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from calculs_api import traitement_etape_1
-
+from calculs_api import (
+    traitement_etape_1,
+    traitement_etape_2,
+)
 
 app = FastAPI()
 
@@ -16,10 +18,15 @@ app.add_middleware(
 
 @app.post("/generer-rapport")
 async def generer_rapport(request: Request):
-    data = await request.json()
-    resultats = traitement_etape_1(data)
-    return {
-        "message": "Étape 1 terminée",
-        "donnees": resultats
-    }
+    donnees = await request.json()
 
+    # Étape 1 : préparation des variables initiales
+    donnees = traitement_etape_1(donnees)
+
+    # Étape 2 : application des réponses aux questions (activation 11/22)
+    donnees = traitement_etape_2(donnees)
+
+    return {
+        "message": "Étapes 1 et 2 terminées",
+        "donnees": donnees
+    }
