@@ -1,3 +1,35 @@
+"""
+Ce script contient les fonctions de traitement numérologique utilisées dans l'API.
+
+🔁 Le processus global est structuré en 5 étapes distinctes :
+
+1. 🧮 Calcul initial (traitement_etape_1) :
+   - Traitement des données brutes envoyées par le frontend (nom, prénoms, date de naissance).
+   - Calcul de toutes les variables numérologiques, y compris les versions ajustées des nombres maîtres 11 et 22 selon toutes les combinaisons d’activation (oui/non).
+   - Ces valeurs sont retournées au frontend, qui décidera de poser ou non des questions via modales conditionnelles.
+
+2. 💬 Interaction utilisateur (gérée côté frontend) :
+   - Affichage conditionnel des modales (activation de 11 et 22, choix entre un ou tous les prénoms pour certains nombres).
+   - Réception des réponses de l’utilisateur.
+   - Transmission au backend de la configuration finale choisie (ActNbMaitre11/22 et les 3 choix Exp, Rea, Ame).
+
+3. 📄 Génération du rapport HTML :
+   - Sélection des textes dans la base de données selon les résultats retenus et la langue.
+   - Injection dans un template HTML structuré.
+
+4. 📦 Création du PDF :
+   - Conversion du HTML généré en fichier PDF lisible et stylisé.
+
+5. ✉️ Livraison :
+   - Envoi du PDF personnalisé par email à l’utilisateur.
+   - Ouverture automatique du fichier dans une nouvelle fenêtre navigateur.
+
+Ce découpage assure modularité, scalabilité et clarté du traitement, tout en optimisant les performances du frontend et du backend.
+"""
+
+
+
+
 import unicodedata
 import re
 from datetime import datetime, date
