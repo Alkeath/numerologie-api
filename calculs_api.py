@@ -222,49 +222,6 @@ def afficher_charte(total, reduit):
     return str(reduit) if total == reduit else f"{total}/{reduit}"
 
 
-#Génère toutes les variantes des variables _ApresTestAct pour les 4 cas d'activation des maîtres.
-def generer_toutes_les_combinaisons_apres_test_act(donnees):
-
-    def ajuster(val, act11, act22):
-        try:
-            v = int(val)
-        except:
-            return val
-        if v == 11 and act11 == 'non': return 2
-        if v == 22 and act22 == 'non': return 4
-        return v
-
-    donnees['NbExp_UnPrenom_Si11Act22Desact'] = ajuster(donnees.get('NbExp_UnPrenom_AvantTestAct', ''), 'oui', 'non')
-    donnees['NbExp_TousPrenoms_Si11Act22Desact'] = ajuster(donnees.get('NbExp_TousPrenoms_AvantTestAct', ''), 'oui', 'non')
-    donnees['NbRea_UnPrenom_Si11Act22Desact'] = ajuster(donnees.get('NbRea_UnPrenom_AvantTestAct', ''), 'oui', 'non')
-    donnees['NbRea_TousPrenoms_Si11Act22Desact'] = ajuster(donnees.get('NbRea_TousPrenoms_AvantTestAct', ''), 'oui', 'non')
-    donnees['NbAme_UnPrenom_Si11Act22Desact'] = ajuster(donnees.get('NbAme_UnPrenom_AvantTestAct', ''), 'oui', 'non')
-    donnees['NbAme_TousPrenoms_Si11Act22Desact'] = ajuster(donnees.get('NbAme_TousPrenoms_AvantTestAct', ''), 'oui', 'non')
-    
-    donnees['NbExp_UnPrenom_Si11Desact22Act'] = ajuster(donnees.get('NbExp_UnPrenom_AvantTestAct', ''), 'non', 'oui')
-    donnees['NbExp_TousPrenoms_Si11Desact22Act'] = ajuster(donnees.get('NbExp_TousPrenoms_AvantTestAct', ''), 'non', 'oui')
-    donnees['NbRea_UnPrenom_Si11Desact22Act'] = ajuster(donnees.get('NbRea_UnPrenom_AvantTestAct', ''), 'non', 'oui')
-    donnees['NbRea_TousPrenoms_Si11Desact22Act'] = ajuster(donnees.get('NbRea_TousPrenoms_AvantTestAct', ''), 'non', 'oui')
-    donnees['NbAme_UnPrenom_Si11Desact22Act'] = ajuster(donnees.get('NbAme_UnPrenom_AvantTestAct', ''), 'non', 'oui')
-    donnees['NbAme_TousPrenoms_Si11Desact22Act'] = ajuster(donnees.get('NbAme_TousPrenoms_AvantTestAct', ''), 'non', 'oui')
-    
-    donnees['NbExp_UnPrenom_Si11Act22Act'] = ajuster(donnees.get('NbExp_UnPrenom_AvantTestAct', ''), 'oui', 'oui')
-    donnees['NbExp_TousPrenoms_Si11Act22Act'] = ajuster(donnees.get('NbExp_TousPrenoms_AvantTestAct', ''), 'oui', 'oui')
-    donnees['NbRea_UnPrenom_Si11Act22Act'] = ajuster(donnees.get('NbRea_UnPrenom_AvantTestAct', ''), 'oui', 'oui')
-    donnees['NbRea_TousPrenoms_Si11Act22Act'] = ajuster(donnees.get('NbRea_TousPrenoms_AvantTestAct', ''), 'oui', 'oui')
-    donnees['NbAme_UnPrenom_Si11Act22Act'] = ajuster(donnees.get('NbAme_UnPrenom_AvantTestAct', ''), 'oui', 'oui')
-    donnees['NbAme_TousPrenoms_Si11Act22Act'] = ajuster(donnees.get('NbAme_TousPrenoms_AvantTestAct', ''), 'oui', 'oui')
-    
-    donnees['NbExp_UnPrenom_Si11Desact22Desact'] = ajuster(donnees.get('NbExp_UnPrenom_AvantTestAct', ''), 'non', 'non')
-    donnees['NbExp_TousPrenoms_Si11Desact22Desact'] = ajuster(donnees.get('NbExp_TousPrenoms_AvantTestAct', ''), 'non', 'non')
-    donnees['NbRea_UnPrenom_Si11Desact22Desact'] = ajuster(donnees.get('NbRea_UnPrenom_AvantTestAct', ''), 'non', 'non')
-    donnees['NbRea_TousPrenoms_Si11Desact22Desact'] = ajuster(donnees.get('NbRea_TousPrenoms_AvantTestAct', ''), 'non', 'non')
-    donnees['NbAme_UnPrenom_Si11Desact22Desact'] = ajuster(donnees.get('NbAme_UnPrenom_AvantTestAct', ''), 'non', 'non')
-    donnees['NbAme_TousPrenoms_Si11Desact22Desact'] = ajuster(donnees.get('NbAme_TousPrenoms_AvantTestAct', ''), 'non', 'non')
-
-
-
-
 
 
 
@@ -350,6 +307,32 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["Presence11"] = "oui" if "11" in valeurs else "non"
     data["Presence22"] = "oui" if "22" in valeurs else "non"
 
+        # 🔧 Fonction interne pour ajuster les valeurs en fonction de l'activation des nombres maîtres
+    def ajuster(val, act11, act22):
+        try:
+            v = int(val)
+        except:
+            return val  # Laisse tel quel si ce n'est pas un entier
+        if v == 11 and act11 == 'non': return 2
+        if v == 22 and act22 == 'non': return 4
+        return v
+
+    # 📦 Génération explicite des 24 versions possibles des variables Exp, Rea, Ame
+    combinaisons = [
+        ("oui", "non", "Si11Act22Desact"),
+        ("non", "oui", "Si11Desact22Act"),
+        ("oui", "oui", "Si11Act22Act"),
+        ("non", "non", "Si11Desact22Desact"),
+    ]
+    noms = ["Exp", "Rea", "Ame"]
+    types = ["UnPrenom", "TousPrenoms"]
+
+    for nom in noms:
+        for type_prenom in types:
+            valeur_avant = donnees.get(f"Nb{nom}_{type_prenom}_AvantTestAct", "")
+            for act11, act22, suffixe in combinaisons:
+                cle_finale = f"Nb{nom}_{type_prenom}_{suffixe}"
+                donnees[cle_finale] = ajuster(valeur_avant, act11, act22)
 
 
 
@@ -358,12 +341,6 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 # on met à jour CdV, Exp, Rea, Ame
 def etape_2_appliquer_reponses_activation_maitres(donnees):
     
-    """
-    Applique les réponses de l'utilisateur sur l'activation des nombres maîtres 11 et 22,
-    en ajustant les variables *_ApresTestAct à partir des *_AvantTestAct.
-    - Si 11 désactivé, il devient 2.
-    - Si 22 désactivé, il devient 4.
-    """
     def ajuster_valeur(valeur_str, act11, act22):
         try:
             valeur = int(valeur_str)
@@ -378,6 +355,9 @@ def etape_2_appliquer_reponses_activation_maitres(donnees):
 
     act11 = donnees.get("ActNbMaitre11", "non")
     act22 = donnees.get("ActNbMaitre22", "non")
+
+    generer_toutes_les_combinaisons_apres_test_act(donnees)
+
 
     # Cas Chemin de Vie (pas de distinction prénoms)
     donnees["NbCdV_ApresTestAct"] = ajuster_valeur(
