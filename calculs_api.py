@@ -305,15 +305,15 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["NbCdVTotal"] = str(total_cdv)
     data["NbCdV_AvantTestAct"] = str(reduit_cdv)
 
-    #Calcul des nombres d'Expression, Réalisation, Ame avant test activation Nb Maîtres
+    # 🔠 Calcul des nombres d'Expression, Réalisation et Âme avant test d'activation des nombres maîtres
     textes = {
         "UnPrenom": normaliser_chaine(data["PrenomNom_UnPrenom"]).replace(" ", ""),
         "TousPrenoms": normaliser_chaine(data["PrenomNom_TousPrenoms"]).replace(" ", "")
     }
-   
+
     for prefixe in ["UnPrenom", "TousPrenoms"]:
-     texte = textes[prefixe]
-     total_exp = total_ame = total_rea = 0
+        texte = textes[prefixe]
+        total_exp = total_ame = total_rea = 0
 
         # 🧮 On parcourt chaque lettre pour calculer les totaux
         for lettre in texte:
@@ -325,13 +325,14 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
                 else:
                     total_rea += val
 
-     # 💾 Enregistrement des totaux et des versions réduites (AvantTestAct)
-    data[f"NbExpTotal_{prefixe}"] = str(total_exp)
-    data[f"NbReaTotal_{prefixe}"] = str(total_rea)
-    data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
-    data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
-    data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
-    data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
+        # 💾 Enregistrement des totaux et des versions réduites (AvantTestAct)
+        data[f"NbExpTotal_{prefixe}"] = str(total_exp)
+        data[f"NbReaTotal_{prefixe}"] = str(total_rea)
+        data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
+        data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
+        data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
+        data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
+
 
     # 🔍 Détection d’un 11 ou 22 dans les 4 nombres principaux
     valeurs = [
