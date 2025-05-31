@@ -311,7 +311,7 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         "TousPrenoms": normaliser_chaine(data["PrenomNom_TousPrenoms"]).replace(" ", "")
     }
    
-   for prefixe in ["UnPrenom", "TousPrenoms"]:
+    for prefixe in ["UnPrenom", "TousPrenoms"]:
      texte = textes[prefixe]
      total_exp = total_ame = total_rea = 0
 
