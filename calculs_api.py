@@ -315,15 +315,15 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
      texte = textes[prefixe]
      total_exp = total_ame = total_rea = 0
 
-    # 🧮 On parcourt chaque lettre pour calculer les totaux
-    for lettre in texte:
-        if lettre.isalpha():
-            val = valeur_lettre(lettre)
-            total_exp += val
-            if est_voyelle(lettre):
-                total_ame += val
-            else:
-                total_rea += val
+        # 🧮 On parcourt chaque lettre pour calculer les totaux
+        for lettre in texte:
+            if lettre.isalpha():
+                val = valeur_lettre(lettre)
+                total_exp += val
+                if est_voyelle(lettre):
+                    total_ame += val
+                else:
+                    total_rea += val
 
      # 💾 Enregistrement des totaux et des versions réduites (AvantTestAct)
     data[f"NbExpTotal_{prefixe}"] = str(total_exp)
@@ -338,7 +338,10 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         data.get("NbCdV_AvantTestAct", ""),
         data.get("NbExp_UnPrenom_AvantTestAct", ""),
         data.get("NbRea_UnPrenom_AvantTestAct", ""),
-        data.get("NbAme_UnPrenom_AvantTestAct", "")
+        data.get("NbAme_UnPrenom_AvantTestAct", ""),
+        data.get("NbExp_TousPrenoms_AvantTestAct", ""),
+        data.get("NbRea_TousPrenoms_AvantTestAct", ""),
+        data.get("NbAme_TousPrenoms_AvantTestAct", "")
     ]
     data["Presence11"] = "oui" if "11" in valeurs else "non"
     data["Presence22"] = "oui" if "22" in valeurs else "non"
