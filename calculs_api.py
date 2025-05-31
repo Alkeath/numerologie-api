@@ -311,9 +311,11 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         "TousPrenoms": normaliser_chaine(data["PrenomNom_TousPrenoms"]).replace(" ", "")
     }
 
-    for prefixe in ["UnPrenom", "TousPrenoms"]:
+     for prefixe in ["UnPrenom", "TousPrenoms"]:
         texte = textes[prefixe]
         total_exp = total_ame = total_rea = 0
+
+        # 🧮 On parcourt chaque lettre pour calculer les totaux
         for lettre in texte:
             if lettre.isalpha():
                 val = valeur_lettre(lettre)
@@ -322,14 +324,16 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
                     total_ame += val
                 else:
                     total_rea += val
+
+        # 💾 Enregistrement des totaux et des versions réduites (AvantTestAct)
         data[f"NbExpTotal_{prefixe}"] = str(total_exp)
         data[f"NbReaTotal_{prefixe}"] = str(total_rea)
         data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
         data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
         data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
         data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
-        
-    # Détection de la présence d’un 11 ou 22 parmi les 4 nombres principaux
+
+    # 🔍 Détection d’un 11 ou 22 dans les 4 nombres principaux
     valeurs = [
         data.get("NbCdV_AvantTestAct", ""),
         data.get("NbExp_UnPrenom_AvantTestAct", ""),
@@ -339,17 +343,19 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["Presence11"] = "oui" if "11" in valeurs else "non"
     data["Presence22"] = "oui" if "22" in valeurs else "non"
 
-        # 🔧 Fonction interne pour ajuster les valeurs en fonction de l'activation des nombres maîtres
+    # 🔧 Fonction interne pour appliquer les règles d’activation des maîtres
     def ajuster(val, act11, act22):
         try:
             v = int(val)
         except:
-            return val  # Laisse tel quel si ce n'est pas un entier
-        if v == 11 and act11 == 'non': return 2
-        if v == 22 and act22 == 'non': return 4
+            return val  # On laisse la valeur telle quelle si elle n'est pas un entier
+        if v == 11 and act11 == 'non':
+            return 2
+        if v == 22 and act22 == 'non':
+            return 4
         return v
 
-    # 📦 Génération explicite des 24 versions possibles des variables Exp, Rea, Ame
+    # 🧩 Génération de toutes les variantes _Si11/22Act/Desact pour chaque combinaison
     combinaisons = [
         ("oui", "non", "Si11Act22Desact"),
         ("non", "oui", "Si11Desact22Act"),
@@ -361,10 +367,10 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 
     for nom in noms:
         for type_prenom in types:
-            valeur_avant = donnees.get(f"Nb{nom}_{type_prenom}_AvantTestAct", "")
+            valeur_avant = data.get(f"Nb{nom}_{type_prenom}_AvantTestAct", "")
             for act11, act22, suffixe in combinaisons:
                 cle_finale = f"Nb{nom}_{type_prenom}_{suffixe}"
-                donnees[cle_finale] = ajuster(valeur_avant, act11, act22)
+                data[cle_finale] = ajuster(valeur_avant, act11, act22)
 
 
 
