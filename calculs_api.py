@@ -326,12 +326,12 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
                 total_rea += val
 
      # 💾 Enregistrement des totaux et des versions réduites (AvantTestAct)
-     data[f"NbExpTotal_{prefixe}"] = str(total_exp)
-     data[f"NbReaTotal_{prefixe}"] = str(total_rea)
-     data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
-     data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
-     data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
-     data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
+    data[f"NbExpTotal_{prefixe}"] = str(total_exp)
+    data[f"NbReaTotal_{prefixe}"] = str(total_rea)
+    data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
+    data[f"NbExp_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_exp))
+    data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
+    data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
 
     # 🔍 Détection d’un 11 ou 22 dans les 4 nombres principaux
     valeurs = [
