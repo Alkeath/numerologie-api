@@ -9,7 +9,7 @@ app = FastAPI()
 # CORS : autorise les appels du frontend (Vercel)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://test-recup.vercel.app"],  # Modifier avec l'URL définitive de production
+    allow_origins=["*"],  # Modifier avec l'URL définitive de production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
