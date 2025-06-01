@@ -376,6 +376,14 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
                 cle_finale = f"Nb{nom}_{type_prenom}_{suffixe}"
                 data[cle_finale] = ajuster(valeur_avant, act11, act22)
 
+    # 🧩 Ajout des 4 variantes du Chemin de Vie
+    valeur_cdv_avant = data.get("NbCdV_AvantTestAct", "")
+    for act11, act22, suffixe in combinaisons:
+        cle_cdv = f"NbCdV_{suffixe}"
+        data[cle_cdv] = ajuster(valeur_cdv_avant, act11, act22)
+
+
+
 
 
 
