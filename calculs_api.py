@@ -410,6 +410,12 @@ def retraitement_variables(choix: ChoixUtilisateur):
 
 
 
+@app.get("/test")
+def test_route():
+    return {"message": "La route /test est bien active"}
+
+
+
 #Etape 2 : en fonction des réponses aux quesetions sur  l'activation des nombres maîtres
 # on met à jour CdV, Exp, Rea, Ame
 def etape_2_appliquer_reponses_activation_maitres(donnees):
