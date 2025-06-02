@@ -2,9 +2,10 @@
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from calculs_api import traitement_etape_1
+from calculs_api import traitement_etape_1 import router as calculs_router
 
 app = FastAPI()
+app.include_router(calculs_router)
 
 # CORS : autorise les appels du frontend (Vercel)
 app.add_middleware(
