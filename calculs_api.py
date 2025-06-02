@@ -394,6 +394,16 @@ class ChoixUtilisateur(BaseModel):
     ActNbMaitre11: str
     ActNbMaitre22: str
     UnPrenomOuTousPrenoms: str
+    RepAct11_Q1: str
+    RepAct11_Q2: str
+    RepAct11_Q3: str
+    RepAct22_Q1: str
+    RepAct22_Q2: str
+    RepAct22_Q3: str
+    RepApprocheCalcul: str
+    RepExpUnPrenomTousPrenoms: str
+    RepReaUnPrenomTousPrenoms: str
+    RepAmeUnPrenomTousPrenoms: str
 
 @router.post("/retraitement_variables")
 def retraitement_variables(choix: ChoixUtilisateur):
