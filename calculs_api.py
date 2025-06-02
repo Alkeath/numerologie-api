@@ -384,6 +384,29 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 
 
 
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class ChoixUtilisateur(BaseModel):
+    Email: str
+    ActNbMaitre11: str
+    ActNbMaitre22: str
+    UnPrenomOuTousPrenoms: str
+
+@app.post("/retraitement_variables")
+def retraitement_variables(choix: ChoixUtilisateur):
+    print(f"🎯 Traitement final pour {choix.Email} :")
+    print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
+    print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
+    print(f"  - Prénoms : {choix.UnPrenomOuTousPrenoms}")
+
+    # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
+    return {
+        "message": "Traitement final reçu avec succès",
+        "email": choix.Email
+    }
 
 
 
