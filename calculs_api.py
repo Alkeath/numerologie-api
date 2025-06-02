@@ -384,10 +384,10 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 
 
 
-from fastapi import FastAPI
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-app = FastAPI()
+router = APIRouter()
 
 class ChoixUtilisateur(BaseModel):
     Email: str
@@ -395,7 +395,7 @@ class ChoixUtilisateur(BaseModel):
     ActNbMaitre22: str
     UnPrenomOuTousPrenoms: str
 
-@app.post("/retraitement_variables")
+@router.post("/retraitement_variables")
 def retraitement_variables(choix: ChoixUtilisateur):
     print(f"🎯 Traitement final pour {choix.Email} :")
     print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
@@ -408,11 +408,6 @@ def retraitement_variables(choix: ChoixUtilisateur):
         "email": choix.Email
     }
 
-
-
-@app.get("/test")
-def test_route():
-    return {"message": "La route /test est bien active"}
 
 
 
