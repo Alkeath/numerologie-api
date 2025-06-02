@@ -2,7 +2,8 @@
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from calculs_api import traitement_etape_1 import router as calculs_router
+from calculs_api import router as calculs_router
+from calculs_api import traitement_etape_1 
 
 app = FastAPI()
 app.include_router(calculs_router)
