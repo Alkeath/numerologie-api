@@ -6,7 +6,6 @@ from calculs_api import router as calculs_router
 from calculs_api import traitement_etape_1 
 
 app = FastAPI()
-app.include_router(calculs_router)
 
 # CORS : autorise les appels du frontend (Vercel)
 app.add_middleware(
@@ -16,6 +15,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(calculs_router)
 
 @app.post("/generer-rapport")
 async def generer_rapport(request: Request):
