@@ -31,13 +31,3 @@ async def generer_rapport(request: Request):
         "message": "Étape 1 terminée",
         "donnees": donnees
     }
-
-@app.post("/etape2")
-async def appel_etape_2(choix: ChoixUtilisateur):
-    email = choix.Email
-    donnees = memoire_utilisateurs.get(email, {}).copy()
-    donnees.update(choix.dict())
-
-    etape_2_recalculs_final_et_affectations(donnees)
-
-    return {"donnees": donnees}
