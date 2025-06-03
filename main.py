@@ -15,7 +15,7 @@ app.add_middleware(
         "https://www.test-recup.vercel.app",
         "http://localhost:3000",
         "http://localhost"
-    ]
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
