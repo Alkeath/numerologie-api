@@ -409,7 +409,7 @@ def retraitement_variables(choix: ChoixUtilisateur):
     print(f"🎯 Traitement final pour {choix.Email} :")
     print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
     print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
-    print(f"  - Prénoms : {choix.UnPrenomOuTousPrenoms}")
+    print(f"  - Prénoms : {choix.ApprocheCalculs}")
 
     # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
     return {
