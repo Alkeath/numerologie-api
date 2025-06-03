@@ -552,6 +552,9 @@ def etape_2_recalculs_final_et_affectations(data):
     data["MoisDeNaissance_Charte"] = data["MoisDeNaissance"]
     data["AnneeDeNaissance_Charte"] = data["AnneeDeNaissance"]
 
+   #Ligne temporaire pour vérifier les calculs (s'affiche dans render)
+    print("🧾 Données après l'étape 2 :", donnees)
+
 
 
 
