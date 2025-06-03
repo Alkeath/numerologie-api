@@ -416,12 +416,36 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         cle_cdv = f"NbCdV_{suffixe}"
         data[cle_cdv] = ajuster(valeur_cdv_avant, act11, act22)
 
+    # 📦 Mémorisation des données essentielles pour étape 2
+    memoire_utilisateurs[data["Email"]] = {
+        "Nom": data["Nom"],
+        "PrenomPremier": data["PrenomPremier"],
+        "PrenomsComplets": data["PrenomsComplets"],
+        "Nom_normalise": data["Nom_normalise"],
+        "PrenomPremier_normalise": data["PrenomPremier_normalise"],
+        "PrenomsComplets_normalise": data["PrenomsComplets_normalise"],
+        "DateDeNaissance": data["DateDeNaissance"]
+    }
+
+
     # ✅ Si aucun nombre maître détecté et un seul prénom, on passe directement à l'étape 2
     if data["Presence11"] == "non" and data["Presence22"] == "non" and not PrenomsSecondaires_Formulaire.strip():
         data["ActNbMaitre11"] = "non"
         data["ActNbMaitre22"] = "non"
         data["ApprocheCalculs"] = "UnPrenomDefaut"
+
+        # Réponses par défaut pour les questions non posées
+        for cle in [
+            "RepAct11_Q1", "RepAct11_Q2", "RepAct11_Q3",
+            "RepAct22_Q1", "RepAct22_Q2", "RepAct22_Q3",
+            "RepExpUnPrenomTousPrenoms",
+            "RepReaUnPrenomTousPrenoms",
+            "RepAmeUnPrenomTousPrenoms"
+        ]:
+            data[cle] = "NonApplicable"
+
         etape_2_recalculs_final_et_affectations(data)
+
 
 
 
@@ -430,21 +454,20 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 ########### Etape 2 ################
 
 def etape_2_recalculs_final_et_affectations(data):
-    # 1. Texte de base pour tous les calculs : nom complet normalisé sans espaces
-    if data["ApprocheCalculs"] in ["UnPrenomDefaut", "UnPrenom"]:
-        texte_final = f"{data['PrenomPremier']} {data['Nom']}"
-    else:
-        texte_final = f"{data['PrenomsComplets']} {data['Nom']}"
-    
-    texte_normalise = normaliser_chaine(texte_final).replace(" ", "")
-    data["PrenomNom_Final_normalise"] = texte_normalise  # au cas où on veut le réutiliser ailleurs
+    # 1. 🔤 Texte normalisé pour tous les calculs à partir du nom complet
+    texte_normalise = (
+        data["PrenomPremier_normalise"] + data["Nom_normalise"]
+        if data["ApprocheCalculs"] in ["UnPrenom", "UnPrenomDefaut"]
+        else data["PrenomsComplets_normalise"] + data["Nom_normalise"]
+    )
+    data["PrenomNom_Final_normalise"] = texte_normalise  # stocké pour références futures
 
-    # 2. Calculs principaux (CdV, Exp, Rea, Ame)
+    # 2. 📅 Calcul du chemin de vie
     chiffres_date = [int(c) for c in data.get("DateDeNaissance", "") if c.isdigit()]
     total_cdv = sum(chiffres_date)
     reduit_cdv = ReductionNombre(total_cdv)
-    cdv_final = appliquer_activation(reduit_cdv, data["ActNbMaitre11"], data["ActNbMaitre22"])
 
+    # 3. 🧮 Calcul des totaux Exp / Rea / Ame
     total_exp = total_ame = total_rea = 0
     for lettre in texte_normalise:
         if lettre.isalpha():
@@ -455,42 +478,46 @@ def etape_2_recalculs_final_et_affectations(data):
             else:
                 total_rea += val
 
+    # 4. ⚙️ Application des règles d’activation
+    act11 = data["ActNbMaitre11"] == "oui"
+    act22 = data["ActNbMaitre22"] == "oui"
+
     data["NbCdVTotal_Final"] = total_cdv
-    data["NbCdV_Final"] = cdv_final
+    data["NbCdV_Final"] = ajuster_nombre_maitre(reduit_cdv, activer_11=act11, activer_22=act22)
+
     data["NbExpTotal_Final"] = total_exp
     data["NbReaTotal_Final"] = total_rea
     data["NbAmeTotal_Final"] = total_ame
-    data["NbCdV_Final"] = ajuster_nombre_maitre(reduit_cdv, activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
-    data["NbExp_Final"] = ajuster_nombre_maitre(ReductionNombre(total_exp), activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
-    data["NbRea_Final"] = ajuster_nombre_maitre(ReductionNombre(total_rea), activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
-    data["NbAme_Final"] = ajuster_nombre_maitre(ReductionNombre(total_ame), activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
 
+    data["NbExp_Final"] = ajuster_nombre_maitre(ReductionNombre(total_exp), activer_11=act11, activer_22=act22)
+    data["NbRea_Final"] = ajuster_nombre_maitre(ReductionNombre(total_rea), activer_11=act11, activer_22=act22)
+    data["NbAme_Final"] = ajuster_nombre_maitre(ReductionNombre(total_ame), activer_11=act11, activer_22=act22)
 
-    # 3. Grille d’intensité
+    # 5. 🔢 Grille d’intensité
     data.update(calcul_grille_intensite(texte_normalise))
 
-    # 4. Plans d’expression
+    # 6. 🧭 Plans d’expression
     data.update(calcul_plan_expression(texte_normalise))
 
-    # 5. Nombres actifs / hérédité
+    # 7. 🧬 Nombres actif et hérédité (à partir des noms normalisés)
     data.update(calcul_nombre_actif_heredite(
-        data["PrenomsComplets_normalise"],
-        data["Nom_normalise"]
+        data["PrenomsComplets_normalise"],  # actif
+        data["Nom_normalise"]               # hérédité
     ))
 
-    # 6. Composantes date naissance
+    # 8. 📆 Éléments issus de la date de naissance
     data.update(calcul_elements_date_naissance(data["DateDeNaissance"]))
 
-    # 7. Nombres karmiques, maîtres, sous-nombres
+    # 9. 🔍 Nombres karmiques, maîtres et sous-nombres
     data.update(analyse_nombres_karmiques_maitres(texte_normalise))
 
-    # 8. Cycles + périodes + défis
+    # 10. 🌀 Cycles, périodes, défis
     data.update(calcul_cycles_et_defis(data["DateDeNaissance"]))
 
-    # 9. Année personnelle et âge
+    # 11. 📈 Année personnelle et âge
     data.update(calcul_annee_personnelle_et_age(data["DateDeNaissance"]))
 
-    # 10. Synthèses finales pour charte (redondants mais renommés)
+    # 12. 🗂️ Redondance pour injection dans la charte
     data["NbExp_Charte"] = data["NbExp_Final"]
     data["NbRea_Charte"] = data["NbRea_Final"]
     data["NbAme_Charte"] = data["NbAme_Final"]
