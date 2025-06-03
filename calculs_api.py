@@ -81,6 +81,12 @@ async def appel_etape_2(choix: ChoixUtilisateur):
 
     return {"donnees": donnees}
 
+    # pour visualiser les réslutat dans la console serveur ou Render
+    print("=== Données finales après étape 2 ===")
+    for cle, valeur in data.items():
+        print(f"{cle} : {valeur}")
+
+
 
 
 def convertir_en_int(valeur):
