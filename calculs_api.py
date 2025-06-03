@@ -68,15 +68,19 @@ def retraitement_variables(choix: ChoixUtilisateur):
         "email": choix.Email
     }
 
-@app.post("/etape2")
+@router.post("/etape2")
 async def appel_etape_2(choix: ChoixUtilisateur):
     email = choix.Email
-    donnees = memoire_utilisateurs.get(email, {}).copy()
+    if email not in memoire_utilisateurs:
+        raise HTTPException(status_code=400, detail="Email inconnu ou session expirée")
+
+    donnees = memoire_utilisateurs[email].copy()
     donnees.update(choix.dict())
 
     etape_2_recalculs_final_et_affectations(donnees)
 
     return {"donnees": donnees}
+
 
 
 def convertir_en_int(valeur):
