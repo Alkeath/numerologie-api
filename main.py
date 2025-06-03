@@ -8,6 +8,9 @@ from calculs_api import traitement_etape_1
 app = FastAPI()
 app.include_router(calculs_router)
 
+# dictionnaire temporaire → indexé par Email
+memoire_utilisateurs = {}
+
 # CORS : autorise les appels du frontend (Vercel)
 app.add_middleware(
     CORSMiddleware,
