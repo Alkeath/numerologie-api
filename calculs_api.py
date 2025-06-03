@@ -65,16 +65,16 @@ def retraitement_variables(choix: ChoixUtilisateur):
     # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
     return {
         "message": "Traitement final reçu avec succès",
-        "email": choix.Email_Formulaire
+        "email_formulaire": choix.Email_Formulaire
     }
 
 @router.post("/etape2")
 async def appel_etape_2(choix: ChoixUtilisateur):
-    email = choix.Email_Formulaire
-    if email not in memoire_utilisateurs:
-        raise HTTPException(status_code=400, detail="Email inconnu ou session expirée")
+    email_formulaire = choix.Email_Formulaire
+    if email_formulaire not in memoire_utilisateurs:
+        raise HTTPException(status_code=400, detail="Email_Formulaire inconnu ou session expirée")
 
-    donnees = memoire_utilisateurs[email].copy()
+    donnees = memoire_utilisateurs[email_formulaire].copy()
     donnees.update(choix.dict())
 
     etape_2_recalculs_final_et_affectations(donnees)
