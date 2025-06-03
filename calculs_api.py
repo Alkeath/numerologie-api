@@ -394,16 +394,16 @@ class ChoixUtilisateur(BaseModel):
     ActNbMaitre11: str
     ActNbMaitre22: str
     UnPrenomOuTousPrenoms: str
-    RepAct11_Q1: str
-    RepAct11_Q2: str
-    RepAct11_Q3: str
-    RepAct22_Q1: str
-    RepAct22_Q2: str
-    RepAct22_Q3: str
-    RepApprocheCalcul: str
-    RepExpUnPrenomTousPrenoms: str
-    RepReaUnPrenomTousPrenoms: str
-    RepAmeUnPrenomTousPrenoms: str
+    RepAct11_Q1: str = "NonApplicable"
+    RepAct11_Q2: str = "NonApplicable"
+    RepAct11_Q3: str = "NonApplicable"
+    RepAct22_Q1: str = "NonApplicable"
+    RepAct22_Q2: str = "NonApplicable"
+    RepAct22_Q3: str = "NonApplicable"
+    RepApprocheCalcul: str = "NonApplicable"
+    RepExpUnPrenomTousPrenoms: str = "NonApplicable"
+    RepReaUnPrenomTousPrenoms: str = "NonApplicable"
+    RepAmeUnPrenomTousPrenoms: str = "NonApplicable"
 
 @router.post("/retraitement_variables")
 def retraitement_variables(choix: ChoixUtilisateur):
@@ -420,47 +420,6 @@ def retraitement_variables(choix: ChoixUtilisateur):
 
 
 
-
-#Etape 2 : en fonction des réponses aux quesetions sur  l'activation des nombres maîtres
-# on met à jour CdV, Exp, Rea, Ame
-def etape_2_appliquer_reponses_activation_maitres(donnees):
-    
-    def ajuster_valeur(valeur_str, act11, act22):
-        try:
-            valeur = int(valeur_str)
-        except:
-            return valeur_str  # Retourne la valeur telle quelle si ce n’est pas un entier
-        if valeur == 11 and act11 == "non":
-            return 2
-        elif valeur == 22 and act22 == "non":
-            return 4
-        else:
-            return valeur
-
-    act11 = donnees.get("ActNbMaitre11", "non")
-    act22 = donnees.get("ActNbMaitre22", "non")
-
-    generer_toutes_les_combinaisons_apres_test_act(donnees)
-
-
-    # Cas Chemin de Vie (pas de distinction prénoms)
-    donnees["NbCdV_ApresTestAct"] = ajuster_valeur(
-        donnees.get("NbCdV_AvantTestAct", ""), act11, act22
-    )
-
-    # Cas Expression, Réalisation, Âme — Un Prénom
-    for nom in ["Exp", "Rea", "Ame"]:
-        cle_avant = f"Nb{nom}_UnPrenom_AvantTestAct"
-        cle_apres = f"Nb{nom}_UnPrenom_ApresTestAct"
-        donnees[cle_apres] = ajuster_valeur(donnees.get(cle_avant, ""), act11, act22)
-
-    # Cas Expression, Réalisation, Âme — Tous les Prénoms
-    for nom in ["Exp", "Rea", "Ame"]:
-        cle_avant = f"Nb{nom}_TousPrenoms_AvantTestAct"
-        cle_apres = f"Nb{nom}_TousPrenoms_ApresTestAct"
-        donnees[cle_apres] = ajuster_valeur(donnees.get(cle_avant, ""), act11, act22)
-
-
 #fonctions pour lancer les scripts des étapes depuis main.py
 def traitement_etape_1(data):
     lignes = []  # pas utilisé ici mais conservé pour cohérence future
@@ -468,13 +427,5 @@ def traitement_etape_1(data):
     return data
 
 def traitement_etape_2(donnees):
-    """
-    Étape 2 : applique les réponses de l'utilisateur concernant l'activation
-    des nombres maîtres et le choix des prénoms. Met à jour les variables *_ApresTestAct.
-    """
-    # Par sécurité, on vérifie que les clés sont présentes, sinon on met des valeurs par défaut
-    donnees["ActNbMaitre11"] = donnees.get("ActNbMaitre11", "non")
-    donnees["ActNbMaitre22"] = donnees.get("ActNbMaitre22", "non")
-    donnees["QuestionsPrenomsSomme"] = donnees.get("QuestionsPrenomsSomme", 0)
-    etape_2_appliquer_reponses_activation_maitres(donnees)
+    
     return donnees
