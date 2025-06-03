@@ -28,6 +28,38 @@ Ce découpage assure modularité, scalabilité et clarté du traitement, tout en
 """
 
 
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+router = APIRouter()
+
+class ChoixUtilisateur(BaseModel):
+    Email: str
+    ActNbMaitre11: str
+    ActNbMaitre22: str
+    RepAct11_Q1: str = "NonApplicable"
+    RepAct11_Q2: str = "NonApplicable"
+    RepAct11_Q3: str = "NonApplicable"
+    RepAct22_Q1: str = "NonApplicable"
+    RepAct22_Q2: str = "NonApplicable"
+    RepAct22_Q3: str = "NonApplicable"
+    ApprocheCalculs: str = "NonApplicable"
+    RepExpUnPrenomTousPrenoms: str = "NonApplicable"
+    RepReaUnPrenomTousPrenoms: str = "NonApplicable"
+    RepAmeUnPrenomTousPrenoms: str = "NonApplicable"
+
+@router.post("/retraitement_variables")
+def retraitement_variables(choix: ChoixUtilisateur):
+    print(f"🎯 Traitement final pour {choix.Email} :")
+    print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
+    print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
+    print(f"  - Prénoms : {choix.ApprocheCalculs}")
+
+    # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
+    return {
+        "message": "Traitement final reçu avec succès",
+        "email": choix.Email
+    }
 
 
 import unicodedata
@@ -260,6 +292,8 @@ def afficher_charte(total, reduit):
 
 
 
+########### Etape 1 ################
+
 # Etape 1 : traiement des données entrées, calculs, jusqu'aux qestions pour savoir
 # si le nombres maîtres sont activés où pas s'il y a des 11 ou 22
 def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
@@ -382,40 +416,97 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         cle_cdv = f"NbCdV_{suffixe}"
         data[cle_cdv] = ajuster(valeur_cdv_avant, act11, act22)
 
+    # ✅ Si aucun nombre maître détecté et un seul prénom, on passe directement à l'étape 2
+    if data["Presence11"] == "non" and data["Presence22"] == "non" and not PrenomsSecondaires_Formulaire.strip():
+        data["ActNbMaitre11"] = "non"
+        data["ActNbMaitre22"] = "non"
+        data["ApprocheCalculs"] = "UnPrenomDefaut"
+        etape_2_recalculs_final_et_affectations(data)
 
 
-from fastapi import APIRouter
-from pydantic import BaseModel
 
-router = APIRouter()
 
-class ChoixUtilisateur(BaseModel):
-    Email: str
-    ActNbMaitre11: str
-    ActNbMaitre22: str
-    RepAct11_Q1: str = "NonApplicable"
-    RepAct11_Q2: str = "NonApplicable"
-    RepAct11_Q3: str = "NonApplicable"
-    RepAct22_Q1: str = "NonApplicable"
-    RepAct22_Q2: str = "NonApplicable"
-    RepAct22_Q3: str = "NonApplicable"
-    ApprocheCalculs: str = "NonApplicable"
-    RepExpUnPrenomTousPrenoms: str = "NonApplicable"
-    RepReaUnPrenomTousPrenoms: str = "NonApplicable"
-    RepAmeUnPrenomTousPrenoms: str = "NonApplicable"
 
-@router.post("/retraitement_variables")
-def retraitement_variables(choix: ChoixUtilisateur):
-    print(f"🎯 Traitement final pour {choix.Email} :")
-    print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
-    print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
-    print(f"  - Prénoms : {choix.ApprocheCalculs}")
+########### Etape 2 ################
 
-    # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
-    return {
-        "message": "Traitement final reçu avec succès",
-        "email": choix.Email
-    }
+def etape_2_recalculs_final_et_affectations(data):
+    # 1. Texte de base pour tous les calculs : nom complet normalisé sans espaces
+    if data["ApprocheCalculs"] in ["UnPrenomDefaut", "UnPrenom"]:
+        texte_final = f"{data['PrenomPremier']} {data['Nom']}"
+    else:
+        texte_final = f"{data['PrenomsComplets']} {data['Nom']}"
+    
+    texte_normalise = normaliser_chaine(texte_final).replace(" ", "")
+    data["PrenomNom_Final_normalise"] = texte_normalise  # au cas où on veut le réutiliser ailleurs
+
+    # 2. Calculs principaux (CdV, Exp, Rea, Ame)
+    chiffres_date = [int(c) for c in data.get("DateDeNaissance", "") if c.isdigit()]
+    total_cdv = sum(chiffres_date)
+    reduit_cdv = ReductionNombre(total_cdv)
+    cdv_final = appliquer_activation(reduit_cdv, data["ActNbMaitre11"], data["ActNbMaitre22"])
+
+    total_exp = total_ame = total_rea = 0
+    for lettre in texte_normalise:
+        if lettre.isalpha():
+            val = valeur_lettre(lettre)
+            total_exp += val
+            if est_voyelle(lettre):
+                total_ame += val
+            else:
+                total_rea += val
+
+    data["NbCdVTotal_Final"] = total_cdv
+    data["NbCdV_Final"] = cdv_final
+    data["NbExpTotal_Final"] = total_exp
+    data["NbReaTotal_Final"] = total_rea
+    data["NbAmeTotal_Final"] = total_ame
+    data["NbCdV_Final"] = ajuster_nombre_maitre(reduit_cdv, activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
+    data["NbExp_Final"] = ajuster_nombre_maitre(ReductionNombre(total_exp), activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
+    data["NbRea_Final"] = ajuster_nombre_maitre(ReductionNombre(total_rea), activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
+    data["NbAme_Final"] = ajuster_nombre_maitre(ReductionNombre(total_ame), activer_11=(data["ActNbMaitre11"] == "oui"), activer_22=(data["ActNbMaitre22"] == "oui"))
+
+
+    # 3. Grille d’intensité
+    data.update(calcul_grille_intensite(texte_normalise))
+
+    # 4. Plans d’expression
+    data.update(calcul_plan_expression(texte_normalise))
+
+    # 5. Nombres actifs / hérédité
+    data.update(calcul_nombre_actif_heredite(
+        data["PrenomsComplets_normalise"],
+        data["Nom_normalise"]
+    ))
+
+    # 6. Composantes date naissance
+    data.update(calcul_elements_date_naissance(data["DateDeNaissance"]))
+
+    # 7. Nombres karmiques, maîtres, sous-nombres
+    data.update(analyse_nombres_karmiques_maitres(texte_normalise))
+
+    # 8. Cycles + périodes + défis
+    data.update(calcul_cycles_et_defis(data["DateDeNaissance"]))
+
+    # 9. Année personnelle et âge
+    data.update(calcul_annee_personnelle_et_age(data["DateDeNaissance"]))
+
+    # 10. Synthèses finales pour charte (redondants mais renommés)
+    data["NbExp_Charte"] = data["NbExp_Final"]
+    data["NbRea_Charte"] = data["NbRea_Final"]
+    data["NbAme_Charte"] = data["NbAme_Final"]
+    data["NbActif_Charte"] = data["NbActif"]
+    data["NbHeredite_Charte"] = data["NbHeredite"]
+    data["NombresKarmiques_Charte"] = data["NombresKarmiques"]
+    data["NombresMaitres_Charte"] = data["NombresMaitres"]
+    data["SousNombres_Charte"] = data["SousNombres"]
+    data["JourDeNaissance_Charte"] = data["JourDeNaissance"]
+    data["MoisDeNaissance_Charte"] = data["MoisDeNaissance"]
+    data["AnneeDeNaissance_Charte"] = data["AnneeDeNaissance"]
+
+
+
+
+
 
 
 
