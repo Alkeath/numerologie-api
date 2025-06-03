@@ -393,14 +393,13 @@ class ChoixUtilisateur(BaseModel):
     Email: str
     ActNbMaitre11: str
     ActNbMaitre22: str
-    UnPrenomOuTousPrenoms: str
     RepAct11_Q1: str = "NonApplicable"
     RepAct11_Q2: str = "NonApplicable"
     RepAct11_Q3: str = "NonApplicable"
     RepAct22_Q1: str = "NonApplicable"
     RepAct22_Q2: str = "NonApplicable"
     RepAct22_Q3: str = "NonApplicable"
-    RepApprocheCalcul: str = "NonApplicable"
+    ApprocheCalculs: str = "NonApplicable"
     RepExpUnPrenomTousPrenoms: str = "NonApplicable"
     RepReaUnPrenomTousPrenoms: str = "NonApplicable"
     RepAmeUnPrenomTousPrenoms: str = "NonApplicable"
