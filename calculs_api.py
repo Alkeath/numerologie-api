@@ -21,7 +21,7 @@ Ce script contient les fonctions de traitement numérologique utilisées dans l'
    - Conversion du HTML généré en fichier PDF lisible et stylisé.
 
 5. ✉️ Livraison :
-   - Envoi du PDF personnalisé par email à l’utilisateur.
+   - Envoi du PDF personnalisé par  à l’utilisateur.
    - Ouverture automatique du fichier dans une nouvelle fenêtre navigateur.
 
 Ce découpage assure modularité, scalabilité et clarté du traitement, tout en optimisant les performances du frontend et du backend.
@@ -41,7 +41,7 @@ router = APIRouter()
 memoire_utilisateurs = {}
 
 class ChoixUtilisateur(BaseModel):
-    Email: str
+    Email_Formulaire : str
     ActNbMaitre11: str
     ActNbMaitre22: str
     RepAct11_Q1: str = "NonApplicable"
@@ -57,7 +57,7 @@ class ChoixUtilisateur(BaseModel):
 
 @router.post("/retraitement_variables")
 def retraitement_variables(choix: ChoixUtilisateur):
-    print(f"🎯 Traitement final pour {choix.Email} :")
+    print(f"🎯 Traitement final pour {choix.Email_Formulaire} :")
     print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
     print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
     print(f"  - Prénoms : {choix.ApprocheCalculs}")
@@ -65,12 +65,12 @@ def retraitement_variables(choix: ChoixUtilisateur):
     # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
     return {
         "message": "Traitement final reçu avec succès",
-        "email": choix.Email
+        "email": choix.Email_Formulaire
     }
 
 @router.post("/etape2")
 async def appel_etape_2(choix: ChoixUtilisateur):
-    email = choix.Email
+    email = choix.Email_Formulaire
     if email not in memoire_utilisateurs:
         raise HTTPException(status_code=400, detail="Email inconnu ou session expirée")
 
@@ -439,7 +439,7 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         data[cle_cdv] = ajuster(valeur_cdv_avant, act11, act22)
 
     # 📦 Mémorisation des données essentielles pour étape 2
-    memoire_utilisateurs[data["Email"]] = {
+    memoire_utilisateurs[data["Email_Formulaire"]] = {
         "Nom": data["Nom"],
         "PrenomPremier": data["PrenomPremier"],
         "PrenomsComplets": data["PrenomsComplets"],
@@ -568,6 +568,3 @@ def traitement_etape_1(data):
 def traitement_etape_2(donnees):
     
     return donnees
-
-
-
