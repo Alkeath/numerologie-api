@@ -57,7 +57,7 @@ class ChoixUtilisateur(BaseModel):
 
 @router.post("/retraitement_variables")
 def retraitement_variables(choix: ChoixUtilisateur):
-    print(f"🎯 Traitement final pour {choix.Email_Formulaire} :")
+    print(f"🎯 Traitement des données étape 1 pour {choix.Email_Formulaire} :")
     print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
     print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
     print(f"  - Prénoms : {choix.ApprocheCalculs}")
@@ -79,12 +79,14 @@ async def appel_etape_2(choix: ChoixUtilisateur):
 
     etape_2_recalculs_final_et_affectations(donnees)
 
-    return {"donnees": donnees}
-
-    # pour visualiser les réslutat dans la console serveur ou Render
-    print("=== Données finales après étape 2 ===")
+   # pour visualiser les réslutat dans la console serveur ou Render
+    print("=== Données après étape 2 ===")
     for cle, valeur in data.items():
         print(f"{cle} : {valeur}")
+
+    return {"donnees": donnees}
+
+
 
 
 
