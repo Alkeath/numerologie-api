@@ -28,10 +28,17 @@ Ce découpage assure modularité, scalabilité et clarté du traitement, tout en
 """
 
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from datetime import datetime, date
+import unicodedata
+import re
 
+# ✅ Initialisation du routeur FastAPI
 router = APIRouter()
+
+# ✅ Mémoire temporaire entre les étapes
+memoire_utilisateurs = {}
 
 class ChoixUtilisateur(BaseModel):
     Email: str
@@ -61,10 +68,15 @@ def retraitement_variables(choix: ChoixUtilisateur):
         "email": choix.Email
     }
 
+@app.post("/etape2")
+async def appel_etape_2(choix: ChoixUtilisateur):
+    email = choix.Email
+    donnees = memoire_utilisateurs.get(email, {}).copy()
+    donnees.update(choix.dict())
 
-import unicodedata
-import re
-from datetime import datetime, date
+    etape_2_recalculs_final_et_affectations(donnees)
+
+    return {"donnees": donnees}
 
 
 def convertir_en_int(valeur):
@@ -546,3 +558,6 @@ def traitement_etape_1(data):
 def traitement_etape_2(donnees):
     
     return donnees
+
+
+
