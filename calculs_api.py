@@ -93,7 +93,7 @@ async def appel_etape_2(choix: ChoixUtilisateur):
 
 
 
-
+######## FONCTIONS UTILITAIRES #########
 
 def convertir_en_int(valeur):
     try:
@@ -196,10 +196,8 @@ def calcul_grille_intensite(texte):
 
     return resultat
 
-
 def calcul_plan_expression(texte):
     texte = texte.replace(" ", "").upper()
-
     plan_expression = {
         "MenCar": list("A"),
         "MenMut": list("HJNP"),
@@ -214,26 +212,21 @@ def calcul_plan_expression(texte):
         "IntMut": list("FQUY"),
         "IntFix": list("CV"),
     }
-
     resultats = {cle: 0 for cle in plan_expression}
-
     for lettre in texte:
         for cle, lettres in plan_expression.items():
             if lettre in lettres:
                 resultats[cle] += 1
-
     # Totaux par domaine
     for domaine in ["Men", "Phy", "Emo", "Int"]:
         resultats[f"{domaine}Tot"] = sum(
             resultats[f"{domaine}{typ}"] for typ in ["Car", "Mut", "Fix"]
         )
-
     # Totaux par type
     for typ in ["Car", "Mut", "Fix"]:
         resultats[f"{typ}Tot"] = sum(
             resultats[f"{domaine}{typ}"] for domaine in ["Men", "Phy", "Emo", "Int"]
         )
-
     return {k: str(v) for k, v in resultats.items()}
 
 
@@ -472,12 +465,17 @@ def etape_2_recalculs_final_et_affectations(data):
     print("📡 Vérification : appel_etape_2 bien reçue (début fonction étape 2)")
    
     # 1. 🔤 Texte normalisé pour tous les calculs à partir du nom complet
-    texte_normalise = (
-        data["PrenomPremier_normalise"] + data["Nom_normalise"]
-        if data["ApprocheCalculs"] in ["UnPrenom", "UnPrenomDefaut"]
-        else data["PrenomsComplets_normalise"] + data["Nom_normalise"]
-    )
-    data["PrenomNom_Final_normalise"] = texte_normalise  # stocké pour références futures
+    approches_un_prenom = [
+        "UnPrenomDefaut", "UnPrenomQuestions", "ChoixUnPrenom"
+    ]
+    if data["ApprocheCalculs"] in approches_un_prenom:
+        texte_prenom_normalise = data["PrenomPremier_normalise"]
+    else:
+        texte_prenom_normalise = data["PrenomsComplets_normalise"]
+    texte_normalise = texte_prenom_normalise + data["Nom_normalise"]
+    data["PrenomNom_Final_normalise"] = texte_normalise
+    data["TextePrenom_Final_normalise"] = texte_prenom_normalise  # utilisé pour le nombre actif
+
 
     # 2. 📅 Calcul du chemin de vie
     chiffres_date = [int(c) for c in data.get("DateDeNaissance", "") if c.isdigit()]
@@ -495,20 +493,43 @@ def etape_2_recalculs_final_et_affectations(data):
             else:
                 total_rea += val
 
-    # 4. ⚙️ Application des règles d’activation
-    act11 = data["ActNbMaitre11"] == "oui"
-    act22 = data["ActNbMaitre22"] == "oui"
-
+    # 4. ⚙️ Application des règles d’activation et constitution des variables finales
+    act11 = data.get("ActNbMaitre11", "non") == "oui"
+    act22 = data.get("ActNbMaitre22", "non") == "oui"
+    # 🔢 Réductions des nombres principaux
+    reduit_cdv = ReductionNombre(total_cdv)
+    reduit_exp = ReductionNombre(total_exp)
+    reduit_rea = ReductionNombre(total_rea)
+    reduit_ame = ReductionNombre(total_ame)
+    # 🔢 Ajustements selon activation 11/22
+    final_cdv = ajuster_nombre_maitre(reduit_cdv, activer_11=act11, activer_22=act22)
+    final_exp = ajuster_nombre_maitre(reduit_exp, activer_11=act11, activer_22=act22)
+    final_rea = ajuster_nombre_maitre(reduit_rea, activer_11=act11, activer_22=act22)
+    final_ame = ajuster_nombre_maitre(reduit_ame, activer_11=act11, activer_22=act22)
+    # 🔢 Enregistrement des totaux
     data["NbCdVTotal_Final"] = total_cdv
-    data["NbCdV_Final"] = ajuster_nombre_maitre(reduit_cdv, activer_11=act11, activer_22=act22)
-
     data["NbExpTotal_Final"] = total_exp
     data["NbReaTotal_Final"] = total_rea
     data["NbAmeTotal_Final"] = total_ame
+    # 🔢 Enregistrement des versions finales (réduites + ajustées)
+    data["NbCdV_Final"] = final_cdv
+    data["NbExp_Final"] = final_exp
+    data["NbRea_Final"] = final_rea
+    data["NbAme_Final"] = final_ame
+    # 🔢 Nombre Actif et Hérédité
+    total_actif = int(data["NbActifTotal"])
+    total_heredite = int(data["NbHerediteTotal"])
+    reduit_actif = ReductionNombre(total_actif)
+    reduit_heredite = ReductionNombre(total_heredite)
+    data["NbActif"] = ajuster_nombre_maitre(reduit_actif, activer_11=act11, activer_22=act22)
+    data["NbHeredite"] = ajuster_nombre_maitre(reduit_heredite, activer_11=act11, activer_22=act22)
+    # 🔢 Listes des nombres spéciaux (Sous-nombres, Maîtres, Karmiques)
+    mode = "UnPrenom" if data["ApprocheCalculs"] in approches_un_prenom else "TousPrenoms"
+    sous_nombres, nombres_maitres, nombres_karmiques = calcul_nombres_speciaux(data, mode=mode)
+    data["SousNombres"] = sous_nombres
+    data["NombresMaitres"] = nombres_maitres
+    data["NombresKarmiques"] = nombres_karmiques
 
-    data["NbExp_Final"] = ajuster_nombre_maitre(ReductionNombre(total_exp), activer_11=act11, activer_22=act22)
-    data["NbRea_Final"] = ajuster_nombre_maitre(ReductionNombre(total_rea), activer_11=act11, activer_22=act22)
-    data["NbAme_Final"] = ajuster_nombre_maitre(ReductionNombre(total_ame), activer_11=act11, activer_22=act22)
 
     # 5. 🔢 Grille d’intensité
     data.update(calcul_grille_intensite(texte_normalise))
@@ -517,16 +538,14 @@ def etape_2_recalculs_final_et_affectations(data):
     data.update(calcul_plan_expression(texte_normalise))
 
     # 7. 🧬 Nombres actif et hérédité (à partir des noms normalisés)
-    data.update(calcul_nombre_actif_heredite(
-        data["PrenomsComplets_normalise"],  # actif
-        data["Nom_normalise"]               # hérédité
-    ))
+    total_actif = sum(valeur_lettre(l) for l in data["TextePrenom_Final_normalise"] if l.isalpha())
+    total_heredite = sum(valeur_lettre(l) for l in data["Nom_normalise"] if l.isalpha())
+    data["NbActifTotal"] = total_actif
+    data["NbHerediteTotal"] = total_heredite
+
 
     # 8. 📆 Éléments issus de la date de naissance
     data.update(calcul_elements_date_naissance(data["DateDeNaissance"]))
-
-    # 9. 🔍 Nombres karmiques, maîtres et sous-nombres
-    data.update(analyse_nombres_karmiques_maitres(texte_normalise))
 
     # 10. 🌀 Cycles, périodes, défis
     data.update(calcul_cycles_et_defis(data["DateDeNaissance"]))
@@ -535,19 +554,19 @@ def etape_2_recalculs_final_et_affectations(data):
     data.update(calcul_annee_personnelle_et_age(data["DateDeNaissance"]))
 
     # 12. 🗂️ Redondance pour injection dans la charte
-    data["NbExp_Charte"] = data["NbExp_Final"]
-    data["NbRea_Charte"] = data["NbRea_Final"]
-    data["NbAme_Charte"] = data["NbAme_Final"]
-    data["NbActif_Charte"] = data["NbActif"]
-    data["NbHeredite_Charte"] = data["NbHeredite"]
+    data["NbCdV_Charte"] = afficher_charte(total_cdv, final_cdv)
+    data["NbExp_Charte"] = afficher_charte(total_exp, final_exp)
+    data["NbRea_Charte"] = afficher_charte(total_rea, final_rea)
+    data["NbAme_Charte"] = afficher_charte(total_ame, final_ame)
+    data["NbActif_Charte"] = afficher_charte(int(data["NbActifTotal"]), int(data["NbActif"]))
+    data["NbHeredite_Charte"] = afficher_charte(int(data["NbHerediteTotal"]), int(data["NbHeredite"]))
     data["NombresKarmiques_Charte"] = data["NombresKarmiques"]
     data["NombresMaitres_Charte"] = data["NombresMaitres"]
     data["SousNombres_Charte"] = data["SousNombres"]
-    data["JourDeNaissance_Charte"] = data["JourDeNaissance"]
-    data["MoisDeNaissance_Charte"] = data["MoisDeNaissance"]
-    data["AnneeDeNaissance_Charte"] = data["AnneeDeNaissance"]
+    data["JourDeNaissance_Charte"] = afficher_charte(int(data["JourDeNaissanceTotal"]), int(data["JourDeNaissance"]))
+    data["MoisDeNaissance_Charte"] = afficher_charte(int(data["MoisDeNaissanceTotal"]), int(data["MoisDeNaissance"]))
+    data["AnneeDeNaissance_Charte"] = afficher_charte(int(data["AnneeDeNaissanceTotal"]), int(data["AnneeDeNaissance"]))
 
-   
     # pour visualiser les réslutat dans la console serveur ou Render
     print("=== Données après étape 2 ===")
     for cle, valeur in data.items():
