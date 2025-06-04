@@ -538,10 +538,14 @@ def etape_2_recalculs_final_et_affectations(data):
     data.update(calcul_plan_expression(texte_normalise))
 
     # 7. 🧬 Nombres actif et hérédité (à partir des noms normalisés)
-    total_actif = sum(valeur_lettre(l) for l in data["TextePrenom_Final_normalise"] if l.isalpha())
-    total_heredite = sum(valeur_lettre(l) for l in data["Nom_normalise"] if l.isalpha())
-    data["NbActifTotal"] = total_actif
-    data["NbHerediteTotal"] = total_heredite
+   total_actif = sum(valeur_lettre(l) for l in texte_prenom_normalise if l.isalpha())
+   total_heredite = sum(valeur_lettre(l) for l in data["Nom_normalise"] if l.isalpha())
+   reduit_actif = ReductionNombre(total_actif)
+   reduit_heredite = ReductionNombre(total_heredite)
+   data["NbActifTotal"] = total_actif
+   data["NbHerediteTotal"] = total_heredite
+   data["NbActif"] = reduit_actif
+   data["NbHeredite"] = reduit_heredite
 
 
     # 8. 📆 Éléments issus de la date de naissance
