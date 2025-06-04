@@ -77,12 +77,16 @@ async def appel_etape_2(choix: ChoixUtilisateur):
     donnees = memoire_utilisateurs[email_formulaire].copy()
     donnees.update(choix.dict())
 
+     print("📡 Point de vérification router /etape 2 avant appel à la fonction")
+
     etape_2_recalculs_final_et_affectations(donnees)
 
    # pour visualiser les réslutat dans la console serveur ou Render
     print("=== Données après étape 2 ===")
     for cle, valeur in data.items():
         print(f"{cle} : {valeur}")
+
+    print("📡 Point de vérification router /etape 2 APRES appel à la fonction")
 
     return {"donnees": donnees}
 
@@ -478,6 +482,9 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 ########### Etape 2 ################
 
 def etape_2_recalculs_final_et_affectations(data):
+
+    print("📡 Vérification : appel_etape_2 bien reçue (début fonction étape 2)")
+   
     # 1. 🔤 Texte normalisé pour tous les calculs à partir du nom complet
     texte_normalise = (
         data["PrenomPremier_normalise"] + data["Nom_normalise"]
