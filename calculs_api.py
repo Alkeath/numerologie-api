@@ -293,6 +293,57 @@ def afficher_charte(total, reduit):
     return str(reduit) if total == reduit else f"{total}/{reduit}"
 
 
+from datetime import datetime
+
+def reduction_nombre(n):
+    while n > 9 and n not in (11, 22, 33):
+        n = sum(int(chiffre) for chiffre in str(n))
+    return n
+
+# --- calculs des cycles, defis, periode, annee personnelle ---
+def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
+    date_naissance = datetime.strptime(date_str, "%Y-%m-%d")
+    jour = date_naissance.day
+    mois = date_naissance.month
+    annee = date_naissance.year
+
+    # Cycles
+    cycle1 = reduction_nombre(mois)
+    cycle2 = reduction_nombre(jour)
+    cycle3 = reduction_nombre(annee)
+
+    # Défis
+    defi1 = reduction_nombre(abs(reduction_nombre(jour) - reduction_nombre(mois)))
+    defi2 = reduction_nombre(abs(reduction_nombre(jour) - reduction_nombre(annee)))
+    defi_majeur = abs(defi1 - defi2)
+
+    # Réalisations
+    realisation1 = reduction_nombre(jour + mois)
+    realisation2 = reduction_nombre(jour + annee)
+    realisation3 = reduction_nombre(realisation1 + realisation2)
+    realisation4 = reduction_nombre(mois + annee)
+
+    # Année personnelle
+    if date_du_jour_str is None:
+        date_du_jour = datetime.today()
+    else:
+        date_du_jour = datetime.strptime(date_du_jour_str, "%Y-%m-%d")
+    a_p = reduction_nombre(
+        sum(int(c) for c in f"{jour:02d}{mois:02d}{date_du_jour.year}")
+    )
+    return {
+        "Cycle1": cycle1,
+        "Cycle2": cycle2,
+        "Cycle3": cycle3,
+        "DefiMineur1": defi1,
+        "DefiMineur2": defi2,
+        "DefiMajeur": defi_majeur,
+        "Realisation1": realisation1,
+        "Realisation2": realisation2,
+        "Realisation3": realisation3,
+        "Realisation4": realisation4,
+        "AnneePersonnelle": a_p
+    }
 
 
 
@@ -539,16 +590,11 @@ def etape_2_recalculs_final_et_affectations(data):
     # 6. 🧭 Plans d’expression
     data.update(calcul_plan_expression(texte_normalise))
 
-    # 7. 📆 Éléments issus de la date de naissance
+    # 7. 📆 Cycles, Réalisations, Défis, Année personnelle
     data.update(calcul_elements_date_naissance(data["DateDeNaissance"]))
 
-    # 8. 🌀 Cycles, périodes, défis
-    data.update(calcul_cycles_et_defis(data["DateDeNaissance"]))
 
-    # 9. 📈 Année personnelle et âge
-    data.update(calcul_annee_personnelle_et_age(data["DateDeNaissance"]))
-
-    # 10. 🗂️ Redondance pour injection dans la charte
+    # 10. 🗂️ Constitution des affichage charte total/reduction
     data["NbCdV_Charte"] = afficher_charte(total_cdv, final_cdv)
     data["NbExp_Charte"] = afficher_charte(total_exp, final_exp)
     data["NbRea_Charte"] = afficher_charte(total_rea, final_rea)
