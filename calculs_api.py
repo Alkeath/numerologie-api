@@ -306,23 +306,19 @@ def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
     jour = date_naissance.day
     mois = date_naissance.month
     annee = date_naissance.year
-
     # Cycles
     cycle1 = reduction_nombre(mois)
     cycle2 = reduction_nombre(jour)
     cycle3 = reduction_nombre(annee)
-
     # Défis
     defi1 = reduction_nombre(abs(reduction_nombre(jour) - reduction_nombre(mois)))
     defi2 = reduction_nombre(abs(reduction_nombre(jour) - reduction_nombre(annee)))
     defi_majeur = abs(defi1 - defi2)
-
     # Réalisations
     realisation1 = reduction_nombre(jour + mois)
     realisation2 = reduction_nombre(jour + annee)
     realisation3 = reduction_nombre(realisation1 + realisation2)
     realisation4 = reduction_nombre(mois + annee)
-
     # Année personnelle
     if date_du_jour_str is None:
         date_du_jour = datetime.today()
@@ -332,19 +328,29 @@ def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
         sum(int(c) for c in f"{jour:02d}{mois:02d}{date_du_jour.year}")
     )
     return {
+        # 📆 Données brutes et réduites pour affichage charte
+        "JourDeNaissanceTotal": jour,
+        "JourDeNaissance": reduction_nombre(jour),
+        "MoisDeNaissanceTotal": mois,
+        "MoisDeNaissance": reduction_nombre(mois),
+        "AnneeDeNaissanceTotal": annee,
+        "AnneeDeNaissance": reduction_nombre(annee),
+        # 🔁 Cycles
         "Cycle1": cycle1,
         "Cycle2": cycle2,
         "Cycle3": cycle3,
+        # 🎯 Défis
         "DefiMineur1": defi1,
         "DefiMineur2": defi2,
         "DefiMajeur": defi_majeur,
+        # 🎯 Réalisations
         "Realisation1": realisation1,
         "Realisation2": realisation2,
         "Realisation3": realisation3,
         "Realisation4": realisation4,
+        # 📅 Année personnelle
         "AnneePersonnelle": a_p
     }
-
 
 
 
@@ -583,7 +589,6 @@ def etape_2_recalculs_final_et_affectations(data):
     data["NombresMaitres"] = nombres_maitres
     data["NombresKarmiques"] = nombres_karmiques
 
-
     # 5. 🔢 Grille d’intensité
     data.update(calcul_grille_intensite(texte_normalise))
 
@@ -593,8 +598,7 @@ def etape_2_recalculs_final_et_affectations(data):
     # 7. 📆 Cycles, Réalisations, Défis, Année personnelle
     data.update(calcul_elements_date_naissance(data["DateDeNaissance"]))
 
-
-    # 10. 🗂️ Constitution des affichage charte total/reduction
+    # 8. 🗂️ Constitution des affichage charte total/reduction
     data["NbCdV_Charte"] = afficher_charte(total_cdv, final_cdv)
     data["NbExp_Charte"] = afficher_charte(total_exp, final_exp)
     data["NbRea_Charte"] = afficher_charte(total_rea, final_rea)
