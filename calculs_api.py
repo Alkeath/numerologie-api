@@ -1,4 +1,4 @@
-.."""
+"""
 Ce script contient les fonctions de traitement numérologique utilisées dans l'API.
 
 🔁 Le processus global est structuré en 5 étapes distinctes :
