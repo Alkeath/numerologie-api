@@ -554,7 +554,11 @@ def etape_2_recalculs_final_et_affectations(data):
     data["MoisDeNaissance_Charte"] = data["MoisDeNaissance"]
     data["AnneeDeNaissance_Charte"] = data["AnneeDeNaissance"]
 
-
+   
+    # pour visualiser les réslutat dans la console serveur ou Render
+    print("=== Données après étape 2 ===")
+    for cle, valeur in data.items():
+        print(f"{cle} : {valeur}")
 
 
 
