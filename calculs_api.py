@@ -77,7 +77,7 @@ async def appel_etape_2(choix: ChoixUtilisateur):
     donnees = memoire_utilisateurs[email_formulaire].copy()
     donnees.update(choix.dict())
 
-     print("📡 Point de vérification router /etape 2 avant appel à la fonction")
+    print("📡 Point de vérification router /etape 2 avant appel à la fonction")
 
     etape_2_recalculs_final_et_affectations(donnees)
 
