@@ -302,7 +302,7 @@ def reduction_nombre(n):
 
 # --- calculs des cycles, defis, periode, annee personnelle ---
 def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
-    date_naissance = datetime.strptime(date_str, "%Y-%m-%d")
+    date_naissance = datetime.strptime(date_str, "%d/%m/%Y")
     jour = date_naissance.day
     mois = date_naissance.month
     annee = date_naissance.year
