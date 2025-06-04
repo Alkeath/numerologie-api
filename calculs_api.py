@@ -165,7 +165,7 @@ def ReductionForcee(nombre):
         nombre = sum(int(c) for c in str(nombre))
     return nombre
 
-def calcul_grille_intensite(texte, prefixe, lignes):
+def calcul_grille_intensite(texte):
     compteur = {i: 0 for i in range(1, 10)}
     total_lettres = 0
 
@@ -182,74 +182,60 @@ def calcul_grille_intensite(texte, prefixe, lignes):
     manquants = [str(i) for i in range(1, 10) if compteur[i] == 0]
     exces = [str(i) for i in range(1, 10) if compteur[i] > seuil_exces]
 
-    # ➕ Mise à jour dans `lignes`
-    for ligne in lignes:
-        cle = ligne[0].strip()
-        if cle == f"NombreLettresTotal_{prefixe}":
-            ligne[1] = str(total_lettres)
-        for i in range(1, 10):
-            if cle == f"NombreDe{i}_{prefixe}":
-                ligne[1] = str(compteur[i])
-        if cle == f"IntensiteDiagonaleAscendante_{prefixe}":
-            ligne[1] = str(diagonale_asc)
-        elif cle == f"IntensiteDiagonaleDescendante_{prefixe}":
-            ligne[1] = str(diagonale_desc)
-        elif cle == f"IntensiteSeuilExces_{prefixe}":
-            ligne[1] = f"{seuil_exces:.2f}"
-        elif cle == f"NombresManquants_{prefixe}":
-            ligne[1] = ", ".join(manquants)
-        elif cle == f"NombresEnExces_{prefixe}":
-            ligne[1] = ", ".join(exces)
-
-    # ➕ Retourner un dictionnaire pour `data.update(...)`
     resultat = {
-        f"NombreLettresTotal_{prefixe}": str(total_lettres),
-        f"IntensiteDiagonaleAscendante_{prefixe}": str(diagonale_asc),
-        f"IntensiteDiagonaleDescendante_{prefixe}": str(diagonale_desc),
-        f"IntensiteSeuilExces_{prefixe}": f"{seuil_exces:.2f}",
-        f"NombresManquants_{prefixe}": ", ".join(manquants),
-        f"NombresEnExces_{prefixe}": ", ".join(exces),
+        "NombreLettresTotal": str(total_lettres),
+        "IntensiteDiagonaleAscendante": str(diagonale_asc),
+        "IntensiteDiagonaleDescendante": str(diagonale_desc),
+        "IntensiteSeuilExces": f"{seuil_exces:.2f}",
+        "NombresManquants": ", ".join(manquants),
+        "NombresEnExces": ", ".join(exces),
     }
+
     for i in range(1, 10):
-        resultat[f"NombreDe{i}_{prefixe}"] = str(compteur[i])
+        resultat[f"NombreDe{i}"] = str(compteur[i])
 
     return resultat
 
-plan_expression = {
-    "MenCar": list("A"),
-    "MenMut": list("HJNP"),
-    "MenFix": list("GL"),
-    "PhyCar": list("E"),
-    "PhyMut": list("W"),
-    "PhyFix": list("DM"),
-    "EmoCar": list("ORIZ"),
-    "EmoMut": list("BSTX"),
-    "EmoFix": [],
-    "IntCar": list("K"),
-    "IntMut": list("FQUY"),
-    "IntFix": list("CV"),
-}
 
-def calcul_plan_expression(texte, suffixe):
+def calcul_plan_expression(texte):
     texte = texte.replace(" ", "").upper()
-    resultats = {cle + f"_{suffixe}": 0 for cle in plan_expression}
+
+    plan_expression = {
+        "MenCar": list("A"),
+        "MenMut": list("HJNP"),
+        "MenFix": list("GL"),
+        "PhyCar": list("E"),
+        "PhyMut": list("W"),
+        "PhyFix": list("DM"),
+        "EmoCar": list("ORIZ"),
+        "EmoMut": list("BSTX"),
+        "EmoFix": [],
+        "IntCar": list("K"),
+        "IntMut": list("FQUY"),
+        "IntFix": list("CV"),
+    }
+
+    resultats = {cle: 0 for cle in plan_expression}
 
     for lettre in texte:
         for cle, lettres in plan_expression.items():
             if lettre in lettres:
-                resultats[cle + f"_{suffixe}"] += 1
+                resultats[cle] += 1
 
+    # Totaux par domaine
     for domaine in ["Men", "Phy", "Emo", "Int"]:
-        resultats[f"{domaine}Tot_{suffixe}"] = sum(
-            resultats[f"{domaine}{typ}_{suffixe}"] for typ in ["Car", "Mut", "Fix"]
+        resultats[f"{domaine}Tot"] = sum(
+            resultats[f"{domaine}{typ}"] for typ in ["Car", "Mut", "Fix"]
         )
 
+    # Totaux par type
     for typ in ["Car", "Mut", "Fix"]:
-        resultats[f"{typ}Tot_{suffixe}"] = sum(
-            resultats[f"{domaine}{typ}_{suffixe}"] for domaine in ["Men", "Phy", "Emo", "Int"]
+        resultats[f"{typ}Tot"] = sum(
+            resultats[f"{domaine}{typ}"] for domaine in ["Men", "Phy", "Emo", "Int"]
         )
 
-    return resultats
+    return {k: str(v) for k, v in resultats.items()}
+
 
 
 # --- Détection des nombres maîtres, sous-nombres, nombres karmiques ---
