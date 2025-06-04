@@ -517,12 +517,14 @@ def etape_2_recalculs_final_et_affectations(data):
     data["NbRea_Final"] = final_rea
     data["NbAme_Final"] = final_ame
     # 🔢 Nombre Actif et Hérédité
-    total_actif = int(data["NbActifTotal"])
-    total_heredite = int(data["NbHerediteTotal"])
+    total_actif = sum(valeur_lettre(l) for l in texte_prenom_normalise if l.isalpha())
+    total_heredite = sum(valeur_lettre(l) for l in data["Nom_normalise"] if l.isalpha())
     reduit_actif = ReductionNombre(total_actif)
     reduit_heredite = ReductionNombre(total_heredite)
-    data["NbActif"] = ajuster_nombre_maitre(reduit_actif, activer_11=act11, activer_22=act22)
-    data["NbHeredite"] = ajuster_nombre_maitre(reduit_heredite, activer_11=act11, activer_22=act22)
+    data["NbActifTotal"] = total_actif
+    data["NbHerediteTotal"] = total_heredite
+    data["NbActif"] = reduit_actif
+    data["NbHeredite"] = reduit_heredite
     # 🔢 Listes des nombres spéciaux (Sous-nombres, Maîtres, Karmiques)
     mode = "UnPrenom" if data["ApprocheCalculs"] in approches_un_prenom else "TousPrenoms"
     sous_nombres, nombres_maitres, nombres_karmiques = calcul_nombres_speciaux(data, mode=mode)
@@ -537,27 +539,16 @@ def etape_2_recalculs_final_et_affectations(data):
     # 6. 🧭 Plans d’expression
     data.update(calcul_plan_expression(texte_normalise))
 
-    # 7. 🧬 Nombres actif et hérédité (à partir des noms normalisés)
-    total_actif = sum(valeur_lettre(l) for l in texte_prenom_normalise if l.isalpha())
-    total_heredite = sum(valeur_lettre(l) for l in data["Nom_normalise"] if l.isalpha())
-    reduit_actif = ReductionNombre(total_actif)
-    reduit_heredite = ReductionNombre(total_heredite)
-    data["NbActifTotal"] = total_actif
-    data["NbHerediteTotal"] = total_heredite
-    data["NbActif"] = reduit_actif
-    data["NbHeredite"] = reduit_heredite
-
-
-    # 8. 📆 Éléments issus de la date de naissance
+    # 7. 📆 Éléments issus de la date de naissance
     data.update(calcul_elements_date_naissance(data["DateDeNaissance"]))
 
-    # 10. 🌀 Cycles, périodes, défis
+    # 8. 🌀 Cycles, périodes, défis
     data.update(calcul_cycles_et_defis(data["DateDeNaissance"]))
 
-    # 11. 📈 Année personnelle et âge
+    # 9. 📈 Année personnelle et âge
     data.update(calcul_annee_personnelle_et_age(data["DateDeNaissance"]))
 
-    # 12. 🗂️ Redondance pour injection dans la charte
+    # 10. 🗂️ Redondance pour injection dans la charte
     data["NbCdV_Charte"] = afficher_charte(total_cdv, final_cdv)
     data["NbExp_Charte"] = afficher_charte(total_exp, final_exp)
     data["NbRea_Charte"] = afficher_charte(total_rea, final_rea)
