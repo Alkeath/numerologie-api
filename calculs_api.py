@@ -83,7 +83,7 @@ async def appel_etape_2(choix: ChoixUtilisateur):
 
    # pour visualiser les réslutat dans la console serveur ou Render
     print("=== Données après étape 2 ===")
-    for cle, valeur in data.items():
+    for cle, valeur in donnees.items():
         print(f"{cle} : {valeur}")
 
     print("📡 Point de vérification router /etape 2 APRES appel à la fonction")
