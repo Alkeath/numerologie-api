@@ -210,29 +210,28 @@ def calcul_plan_expression(texte):
         )
     return {k: str(v) for k, v in resultats.items()}
 
-# --- Détection des nombres maîtres, sous-nombres, nombres karmiques ---
-def calcul_nombres_speciaux(valeurs_totales):
+# --- Constitution de la liste des nombres maîtres, sous-nombres, nombres karmiques ---
+def constitution_liste_nombres_speciaux(valeurs_totales):
     def somme_chiffres(n):
         return sum(int(c) for c in str(n))
-    nombres_maitres_fixes = [11, 22, 33, 44, 55, 66, 77, 88, 99]
     karmiques_fixes = [13, 14, 16, 19]
     nombres_maitres = []
     sous_nombres = []
     karmiques = []
     for val in valeurs_totales:
         if isinstance(val, int):
-            est_maitre = (val in nombres_maitres_fixes) or (somme_chiffres(val) % 11 == 0 and somme_chiffres(val) != 0)
+            est_maitre = (val % 11 == 0) or (somme_chiffres(val) % 11 == 0 and somme_chiffres(val) != 0)
             if est_maitre:
                 nombres_maitres.append(val)
             else:
                 sous_nombres.append(val)
             if val in karmiques_fixes:
                 karmiques.append(val)
-    # Formatage en chaînes séparées par virgule + espace
     sous_nombres_str = ", ".join(str(n) for n in sorted(sous_nombres))
     nombres_maitres_str = ", ".join(str(n) for n in sorted(nombres_maitres))
     karmiques_str = ", ".join(str(n) for n in sorted(karmiques))
     return sous_nombres_str, nombres_maitres_str, karmiques_str
+
 
 # --- Ajuste la valeur selon l’activation des nombres maîtres 11 et 22 ---
 def ajuster_nombre_maitre(valeur_str, activer_11=False, activer_22=False):
@@ -559,7 +558,7 @@ def etape_2_recalculs_final_et_affectations(data):
     data["MoisDeNaissance_Charte"] = afficher_charte(int(data["MoisDeNaissanceTotal"]), int(data["MoisDeNaissance"]))
     data["AnneeDeNaissance_Charte"] = afficher_charte(int(data["AnneeDeNaissanceTotal"]), int(data["AnneeDeNaissance"]))
     #constitution des listes de nombres maîtres, karmiques et sous-nombres
-    sous_nombres, nombres_maitres, nombres_karmiques = calcul_nombres_speciaux(
+    sous_nombres, nombres_maitres, nombres_karmiques = constitution_liste_nombres_speciaux(
         [
             data["NbCdVTotal_Final"],
             data["NbExpTotal_Final"],
