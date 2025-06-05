@@ -1,3 +1,7 @@
 fastapi
 uvicorn
 weasyprint==65.1
+jinja2
+pydantic
+python-multipart
+email-validator
