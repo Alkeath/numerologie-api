@@ -73,21 +73,10 @@ async def appel_etape_2(choix: ChoixUtilisateur):
     email_formulaire = choix.Email_Formulaire
     if email_formulaire not in memoire_utilisateurs:
         raise HTTPException(status_code=400, detail="Email_Formulaire inconnu ou session expirée")
-
     donnees = memoire_utilisateurs[email_formulaire].copy()
     donnees.update(choix.dict())
-
     print("📡 Point de vérification router /etape 2 avant appel à la fonction")
-
     etape_2_recalculs_final_et_affectations(donnees)
-
-   # pour visualiser les réslutat dans la console serveur ou Render
-    print("=== Données après étape 2 ===")
-    for cle, valeur in donnees.items():
-        print(f"{cle} : {valeur}")
-
-    print("📡 Point de vérification router /etape 2 APRES appel à la fonction")
-
     return {"donnees": donnees}
 
 
@@ -232,22 +221,27 @@ def calcul_plan_expression(texte):
 
 
 # --- Détection des nombres maîtres, sous-nombres, nombres karmiques ---
-def calcul_nombres_speciaux(data, mode="UnPrenom"):
-    nombres_maitres_fixes = {11, 22, 33, 44, 55, 66, 77, 88, 99}
-    nombres_karmiques_fixes = {13, 14, 16, 19}
+def somme_chiffres(n):
+    return sum(int(c) for c in str(abs(n)) if c.isdigit())
 
-    if mode == "UnPrenom":
-        cles = [
-            "NbExpTotal_UnPrenom", "NbReaTotal_UnPrenom", "NbAmeTotal_UnPrenom",
-            "NbActifTotal_UnPrenom", "NbCdVTotal"
-        ]
-    elif mode == "TousPrenoms":
-        cles = [
-            "NbExpTotal_TousPrenoms", "NbReaTotal_TousPrenoms", "NbAmeTotal_TousPrenoms",
-            "NbActifTotal_TousPrenoms", "NbCdVTotal"
-        ]
-    else:
-        return [], [], []
+def calcul_nombres_speciaux(valeurs_totales):
+    nombres_maitres = []
+    sous_nombres = []
+    karmiques = []
+
+    for val in valeurs_totales:
+        est_maitre = (val % 11 == 0) or (somme_chiffres(val) % 11 == 0)
+
+        if est_maitre:
+            nombres_maitres.append(val)
+        else:
+            sous_nombres.append(val)
+
+        if val in [13, 14, 16, 19]:
+            karmiques.append(val)
+
+    return sous_nombres, nombres_maitres, karmiques
+
 
     # Extraction des sous-nombres
     sous_nombres = set()
@@ -296,7 +290,7 @@ def afficher_charte(total, reduit):
 from datetime import datetime
 
 def reduction_nombre(n):
-    while n > 9 and n not in (11, 22, 33):
+    while n > 9 and n not in (11, 22):
         n = sum(int(chiffre) for chiffre in str(n))
     return n
 
@@ -605,12 +599,25 @@ def etape_2_recalculs_final_et_affectations(data):
     data["NbAme_Charte"] = afficher_charte(total_ame, final_ame)
     data["NbActif_Charte"] = afficher_charte(int(data["NbActifTotal"]), int(data["NbActif"]))
     data["NbHeredite_Charte"] = afficher_charte(int(data["NbHerediteTotal"]), int(data["NbHeredite"]))
-    data["NombresKarmiques_Charte"] = data["NombresKarmiques"]
-    data["NombresMaitres_Charte"] = data["NombresMaitres"]
-    data["SousNombres_Charte"] = data["SousNombres"]
     data["JourDeNaissance_Charte"] = afficher_charte(int(data["JourDeNaissanceTotal"]), int(data["JourDeNaissance"]))
     data["MoisDeNaissance_Charte"] = afficher_charte(int(data["MoisDeNaissanceTotal"]), int(data["MoisDeNaissance"]))
     data["AnneeDeNaissance_Charte"] = afficher_charte(int(data["AnneeDeNaissanceTotal"]), int(data["AnneeDeNaissance"]))
+    #constitution des listes de nombres maîtres, karmiques et sous-nombres
+    sous_nombres, nombres_maitres, nombres_karmiques = calcul_nombres_speciaux(
+        [
+            data["NbCdVTotal_Final"],
+            data["NbExpTotal_Final"],
+            data["NbReaTotal_Final"],
+            data["NbAmeTotal_Final"],
+            data["NbActifTotal"],
+            data["NbHerediteTotal"]
+        ]
+    )
+    data["SousNombres"] = sous_nombres
+    data["NombresMaitres"] = nombres_maitres
+    data["NombresKarmiques"] = nombres_karmiques
+
+
 
     # pour visualiser les réslutat dans la console serveur ou Render
     print("=== Données après étape 2 ===")
