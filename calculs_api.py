@@ -538,12 +538,6 @@ def etape_2_recalculs_final_et_affectations(data):
     data["NbHerediteTotal"] = total_heredite
     data["NbActif"] = reduit_actif
     data["NbHeredite"] = reduit_heredite
-    # 🔢 Listes des nombres spéciaux (Sous-nombres, Maîtres, Karmiques)
-    mode = "UnPrenom" if data["ApprocheCalculs"] in approches_un_prenom else "TousPrenoms"
-    sous_nombres, nombres_maitres, nombres_karmiques = calcul_nombres_speciaux(data, mode=mode)
-    data["SousNombres"] = sous_nombres
-    data["NombresMaitres"] = nombres_maitres
-    data["NombresKarmiques"] = nombres_karmiques
 
     # 5. 🔢 Grille d’intensité
     data.update(calcul_grille_intensite(texte_normalise))
