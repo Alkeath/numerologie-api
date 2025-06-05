@@ -55,14 +55,15 @@ class ChoixUtilisateur(BaseModel):
     RepReaUnPrenomTousPrenoms: str = "NonApplicable"
     RepAmeUnPrenomTousPrenoms: str = "NonApplicable"
 
+
+######### CREATION DES ROUTES #############
+
 @router.post("/retraitement_variables")
 def retraitement_variables(choix: ChoixUtilisateur):
     print(f"🎯 Traitement des données étape 1 pour {choix.Email_Formulaire} :")
     print(f"  - ActNbMaitre11 : {choix.ActNbMaitre11}")
     print(f"  - ActNbMaitre22 : {choix.ActNbMaitre22}")
     print(f"  - Prénoms : {choix.ApprocheCalculs}")
-
-    # TODO : ici tu ajouteras la logique pour déterminer les bonnes valeurs _ApresTestAct
     return {
         "message": "Traitement final reçu avec succès",
         "email_formulaire": choix.Email_Formulaire
@@ -103,9 +104,7 @@ def nettoyer_chaine_nom_prenom(texte, majuscules=False):
             return "LATIN" in unicodedata.name(c) and c.isalpha()
         except ValueError:
             return False
-
     texte_filtré = ''.join(c if est_lettre_latine(c) or c in " -'" else "" for c in texte)
-
     if majuscules:
         return texte_filtré.upper()
 
@@ -114,7 +113,6 @@ def nettoyer_chaine_nom_prenom(texte, majuscules=False):
             if sep in mot:
                 return sep.join(part.capitalize() for part in mot.split(sep))
         return mot.capitalize()
-
     return ' '.join(cap_mot(mot) for mot in texte_filtré.split())
 
 def normaliser_chaine(texte):
@@ -126,7 +124,6 @@ def normaliser_chaine(texte):
     }
     for char, repl in remplacements_speciaux.items():
         texte = texte.replace(char, repl)
-
     texte = unicodedata.normalize('NFD', texte)
     texte = ''.join(c for c in texte if unicodedata.category(c) != 'Mn')
     return texte
@@ -157,20 +154,17 @@ def ReductionForcee(nombre):
 def calcul_grille_intensite(texte):
     compteur = {i: 0 for i in range(1, 10)}
     total_lettres = 0
-
     for lettre in texte:
         if lettre.isalpha():
             val = valeur_lettre(lettre)
             if val > 0:
                 compteur[val] += 1
                 total_lettres += 1
-
     diagonale_asc = compteur[7] + compteur[5] + compteur[3]
     diagonale_desc = compteur[1] + compteur[5] + compteur[9]
     seuil_exces = (total_lettres / 9) * 1.2
     manquants = [str(i) for i in range(1, 10) if compteur[i] == 0]
     exces = [str(i) for i in range(1, 10) if compteur[i] > seuil_exces]
-
     resultat = {
         "NombreLettresTotal": str(total_lettres),
         "IntensiteDiagonaleAscendante": str(diagonale_asc),
@@ -179,10 +173,8 @@ def calcul_grille_intensite(texte):
         "NombresManquants": ", ".join(manquants),
         "NombresEnExces": ", ".join(exces),
     }
-
     for i in range(1, 10):
         resultat[f"NombreDe{i}"] = str(compteur[i])
-
     return resultat
 
 def calcul_plan_expression(texte):
@@ -218,55 +210,29 @@ def calcul_plan_expression(texte):
         )
     return {k: str(v) for k, v in resultats.items()}
 
-
-
 # --- Détection des nombres maîtres, sous-nombres, nombres karmiques ---
-def somme_chiffres(n):
-    return sum(int(c) for c in str(abs(n)) if c.isdigit())
-
 def calcul_nombres_speciaux(valeurs_totales):
+    def somme_chiffres(n):
+        return sum(int(c) for c in str(n))
+    nombres_maitres_fixes = [11, 22, 33, 44, 55, 66, 77, 88, 99]
+    karmiques_fixes = [13, 14, 16, 19]
     nombres_maitres = []
     sous_nombres = []
     karmiques = []
-
     for val in valeurs_totales:
-        est_maitre = (val % 11 == 0) or (somme_chiffres(val) % 11 == 0)
-
-        if est_maitre:
-            nombres_maitres.append(val)
-        else:
-            sous_nombres.append(val)
-
-        if val in [13, 14, 16, 19]:
-            karmiques.append(val)
-
-    return sous_nombres, nombres_maitres, karmiques
-
-
-    # Extraction des sous-nombres
-    sous_nombres = set()
-    for cle in cles:
-        val = data.get(cle)
-        if val and val.isdigit():
-            sous_nombres.add(int(val))
-
-    # Détection des maîtres
-    def est_maitre(n):
-        return (
-            n in nombres_maitres_fixes
-            or (sum(int(c) for c in str(n)) % 11 == 0 and sum(int(c) for c in str(n)) > 0)
-        )
-
-    nombres_maitres = sorted({n for n in sous_nombres if est_maitre(n)})
-    nombres_karmiques = sorted({n for n in sous_nombres if n in nombres_karmiques_fixes})
-
-    return sorted(sous_nombres), nombres_maitres, nombres_karmiques
-
-# --- Formatage de la liste des nombres maîtres, sous-nombres, nombres karmiques pour la charte
-def formater_liste(liste):
-    """Retourne une chaîne triée de nombres uniques séparés par virgules."""
-    return ", ".join(str(n) for n in sorted(set(liste)))
-
+        if isinstance(val, int):
+            est_maitre = (val in nombres_maitres_fixes) or (somme_chiffres(val) % 11 == 0 and somme_chiffres(val) != 0)
+            if est_maitre:
+                nombres_maitres.append(val)
+            else:
+                sous_nombres.append(val)
+            if val in karmiques_fixes:
+                karmiques.append(val)
+    # Formatage en chaînes séparées par virgule + espace
+    sous_nombres_str = ", ".join(str(n) for n in sorted(sous_nombres))
+    nombres_maitres_str = ", ".join(str(n) for n in sorted(nombres_maitres))
+    karmiques_str = ", ".join(str(n) for n in sorted(karmiques))
+    return sous_nombres_str, nombres_maitres_str, karmiques_str
 
 # --- Ajuste la valeur selon l’activation des nombres maîtres 11 et 22 ---
 def ajuster_nombre_maitre(valeur_str, activer_11=False, activer_22=False):
@@ -274,7 +240,6 @@ def ajuster_nombre_maitre(valeur_str, activer_11=False, activer_22=False):
         val = int(valeur_str)
     except:
         return valeur_str  # ne rien faire si ce n’est pas un nombre
-
     if val == 11:
         return 11 if activer_11 else 2
     elif val == 22:
@@ -285,9 +250,6 @@ def ajuster_nombre_maitre(valeur_str, activer_11=False, activer_22=False):
 # --- Présentation des résultats pour la charte numérologique en format tot/reduit ---
 def afficher_charte(total, reduit):
     return str(reduit) if total == reduit else f"{total}/{reduit}"
-
-
-from datetime import datetime
 
 def reduction_nombre(n):
     while n > 9 and n not in (11, 22):
