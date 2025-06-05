@@ -1,9 +1,11 @@
-#il faudra mettre l'URL du site dans allow_origins une fois qu'il sera défini
-
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from calculs_api import router as calculs_router
 from calculs_api import traitement_etape_1
+from pathlib import Path
+from weasyprint import HTML
+import uuid
 
 app = FastAPI()
 
@@ -24,10 +26,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ✅ Inclusion des routes
+# ✅ Inclusion des routes API de calcul
 app.include_router(calculs_router)
 
-# ✅ Route principale
+# ✅ Route POST pour l'étape 1 des calculs
 @app.post("/generer-rapport")
 async def generer_rapport(request: Request):
     print("✅ Requête reçue")
@@ -38,3 +40,24 @@ async def generer_rapport(request: Request):
         "message": "Étape 1 terminée",
         "donnees": donnees
     }
+
+# ✅ Route GET pour générer le PDF depuis le template HTML
+@app.get("/generer-pdf")
+def generer_pdf():
+    # 📄 Lire le HTML de base
+    chemin_html = Path("app/templates/template_temporaire1/index.html")
+    contenu_html = chemin_html.read_text(encoding="utf-8")
+
+    # 📂 Créer un fichier temporaire
+    nom_temporaire = f"rapport_{uuid.uuid4().hex[:8]}.pdf"
+    chemin_pdf = Path(f"/tmp/{nom_temporaire}")  # Compatible Render
+
+    # 🖨️ Générer le PDF
+    HTML(string=contenu_html).write_pdf(target=str(chemin_pdf))
+
+    # 📤 Envoyer le fichier PDF comme réponse
+    return FileResponse(
+        path=chemin_pdf,
+        media_type="application/pdf",
+        filename="rapport.pdf"
+    )
