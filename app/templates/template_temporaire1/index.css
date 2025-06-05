@@ -1,5 +1,5 @@
 body {
-  font-family: sans-serif;
+  font-family: DejaVu Sans, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   padding: 2em;
@@ -14,5 +14,6 @@ h1 {
 
 .color {
   color: #d03c3c;
+  font-style: italic;
   font-weight: bold;
 }
