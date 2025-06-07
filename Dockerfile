@@ -21,4 +21,4 @@ COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 🚀 Commande de démarrage de l'application FastAPI via Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
