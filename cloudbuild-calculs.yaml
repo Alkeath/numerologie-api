@@ -32,6 +32,8 @@ steps:
       - '1'
       - '--concurrency'
       - '1'
+      - '--service-account'
+      - 'cloudbuild-deploy-sitewebnumer@sitewebnumerologie.iam.gserviceaccount.com'
       - '--allow-unauthenticated'
 
 images:
