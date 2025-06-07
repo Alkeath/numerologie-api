@@ -35,6 +35,9 @@ steps:
       - '--service-account'
       - 'cloudbuild-deploy-sitewebnumer@sitewebnumerologie.iam.gserviceaccount.com'
       - '--allow-unauthenticated'
+      - '--verbosity'
+      - 'debug'
+
 
 images:
   - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
