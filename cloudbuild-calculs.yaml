@@ -1,15 +1,15 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs/calculs-api', './services/calculs']
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api', './services/calculs']
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs/calculs-api']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api']
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args: [
       'run', 'deploy', 'calculs-api',
-      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs/calculs-api',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api',
       '--region', 'us-central1',
       '--platform', 'managed',
       '--memory', '1024Mi',
@@ -19,7 +19,7 @@ steps:
     ]
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs/calculs-api'
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api'
 
 options:
   logging: CLOUD_LOGGING_ONLY
