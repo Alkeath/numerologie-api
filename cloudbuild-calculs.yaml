@@ -1,25 +1,41 @@
 steps:
+  # 🔧 Étape 1 : Construire l'image Docker
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api', './services/calculs']
+    args:
+      - 'build'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
+      - './services/calculs'
 
+  # 📤 Étape 2 : Pousser l'image vers Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api']
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
 
+  # 🚀 Étape 3 : Déployer sur Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args: [
-      'run', 'deploy', 'calculs-api',
-      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api',
-      '--region', 'us-central1',
-      '--platform', 'managed',
-      '--memory', '1024Mi',
-      '--cpu', '1',
-      '--concurrency', '1',
-      '--allow-unauthenticated'
-    ]
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'calculs-api'
+      - '--image'
+      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--memory'
+      - '1024Mi'
+      - '--cpu'
+      - '1'
+      - '--concurrency'
+      - '1'
+      - '--allow-unauthenticated'
 
 images:
-  - 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs_api/calculs-api'
+  - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
 
 options:
   logging: CLOUD_LOGGING_ONLY
