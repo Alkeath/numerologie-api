@@ -9,7 +9,7 @@ steps:
     entrypoint: gcloud
     args: [
       'run', 'deploy', 'calculs-api',
-      '--image', 'gcr.io/$PROJECT_ID/calculs-api',
+      '--image', 'us-central1-docker.pkg.dev/$PROJECT_ID/calculs/calculs-api',
       '--region', 'us-central1',
       '--platform', 'managed',
       '--memory', '1024Mi',
