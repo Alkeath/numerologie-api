@@ -4,14 +4,14 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
+      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
       - './services/calculs'
 
   # 📤 Étape 2 : Pousser l'image vers Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
+      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
 
   # 🚀 Étape 3 : Déployer sur Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -21,7 +21,7 @@ steps:
       - 'deploy'
       - 'calculs-api'
       - '--image'
-      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
+      - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -35,7 +35,7 @@ steps:
       - '--allow-unauthenticated'
 
 images:
-  - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs_api/calculs-api'
+  - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
 
 options:
   logging: CLOUD_LOGGING_ONLY
