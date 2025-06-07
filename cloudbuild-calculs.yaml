@@ -32,9 +32,9 @@ steps:
       - '1'
       - '--concurrency'
       - '1'
-      - '--allow-unauthenticated'
       - '--service-account'
       - 'cloudbuild-deploy-sitewebnumer@sitewebnumerologie.iam.gserviceaccount.com'
+      - '--allow-unauthenticated'
 
 images:
   - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
