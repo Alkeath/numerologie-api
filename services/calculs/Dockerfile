@@ -3,6 +3,7 @@ FROM python:3.11-slim
 
 # 📂 Créer le dossier de travail
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 # 📁 Copier tous les fichiers du projet dans l'image Docker
 COPY . .
