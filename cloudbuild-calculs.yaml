@@ -37,6 +37,8 @@ steps:
       - '--allow-unauthenticated'
       - '--verbosity'
       - 'debug'
+      - '--timeout'
+      - '600s'
 
 
 images:
