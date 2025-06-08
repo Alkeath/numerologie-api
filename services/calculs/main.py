@@ -4,7 +4,6 @@ from fastapi.responses import FileResponse
 from calculs_api import router as calculs_router
 from calculs_api import traitement_etape_1
 from pathlib import Path
-from weasyprint import HTML
 import uuid
 
 app = FastAPI()
