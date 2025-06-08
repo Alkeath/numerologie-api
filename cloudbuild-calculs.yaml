@@ -6,7 +6,7 @@ steps:
       - 'build'
       - '-t'
       - 'us-central1-docker.pkg.dev/sitewebnumerologie/calculs-api/calculs-api'
-      - '.'
+      - './services/calculs'
 
   # 📤 Étape 2 : Pousser l'image vers Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
