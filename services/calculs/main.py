@@ -1,10 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from calculs_api import router as calculs_router
 from calculs_api import traitement_etape_1
-from pathlib import Path
-import uuid
 
 app = FastAPI()
 
@@ -40,27 +37,13 @@ async def generer_rapport(request: Request):
         "donnees": donnees
     }
 
-# ✅ Route GET pour générer le PDF depuis le template HTML (avec CSS et images prises en compte)
-@app.get("/generer-pdf")
-def generer_pdf():
-    # 📄 Lire le fichier HTML brut
-    chemin_html = Path("app/templates/template_temporaire1/index.html")
-    contenu_html = chemin_html.read_text(encoding="utf-8")
+# ✅ Lancement du serveur si exécuté directement (utile pour Docker/Cloud Run)
+if __name__ == "__main__":
+    import os
+    import uvicorn
 
-    # 🔍 Définir le chemin de base pour que WeasyPrint résolve les fichiers CSS/images
-    base_url = chemin_html.parent.resolve().as_uri()
+    # 🔁 Récupération du port depuis les variables d'environnement (Cloud Run impose PORT)
+    port = int(os.environ.get("PORT", 8080))
 
-    # 📂 Créer un chemin vers un fichier temporaire (compatible Render et systèmes Unix)
-    nom_temporaire = f"rapport_{uuid.uuid4().hex[:8]}.pdf"
-    chemin_pdf = Path(f"/tmp/{nom_temporaire}")
-
-    # 🖨️ Générer le PDF en tenant compte du contexte de base (CSS, images)
-    HTML(string=contenu_html, base_url=base_url).write_pdf(target=str(chemin_pdf))
-
-    # 📤 Envoyer le PDF pour affichage direct dans le navigateur (et non téléchargement)
-    return FileResponse(
-        path=chemin_pdf,
-        media_type="application/pdf",
-        filename="rapport.pdf",
-        headers={"Content-Disposition": "inline; filename=rapport.pdf"}
-    )
+    # 🚀 Démarrage de l’application FastAPI avec Uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
