@@ -1,15 +1,14 @@
-# Utilise une image Python officielle
+# 🐍 1. Image de base officielle avec Python
 FROM python:3.11-slim
 
-# Crée un dossier de travail dans le conteneur
+# 📂 2. Crée un répertoire /app dans le conteneur et s’y place
 WORKDIR /app
 
-# Copie les fichiers nécessaires
-COPY requirements.txt ./
-COPY main.py ./
+# 📦 3. Copie les fichiers de ce dossier dans le conteneur
+COPY . .
 
-# Installe les dépendances
-RUN pip install --no-cache-dir -r requirements.txt
+# 📚 4. Installe les bibliothèques nécessaires
+RUN pip install --no-cache-dir pandas gspread oauth2client psycopg2-binary
 
-# Commande de démarrage
+# 🚀 5. Commande lancée automatiquement quand le conteneur démarre
 CMD ["python", "main.py"]
