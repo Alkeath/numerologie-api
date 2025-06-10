@@ -18,9 +18,13 @@ Ce module lit automatiquement un ou plusieurs onglets d’un Google Sheets parta
 ## 🗂 Arborescence
 
 services/
+
 └── GoogleSheetsVersBDD/
+
 ├── main.py # Script principal de synchronisation
+
 ├── Dockerfile # Image Docker pour déploiement sur Railway
+
 └── README.md # Ce fichier
 
 
