@@ -27,7 +27,7 @@ app.include_router(calculs_router)
 
 # ✅ Route POST pour l'étape 1 des calculs
 @app.post("/calculs-formulaire")
-async def calculs-formulaire (request: Request):
+async def calculs_formulaire (request: Request):
     print("✅ Requête reçue")
     donnees = await request.json()
     print("📥 Données :", donnees)
