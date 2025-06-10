@@ -8,9 +8,6 @@ WORKDIR /app
 COPY requirements.txt ./
 COPY main.py ./
 
-# Copie aussi les credentials du service (si jamais tu les ajoutes manuellement, à éviter si tu peux)
-# COPY numerologie-import-bdd.json ./
-
 # Installe les dépendances
 RUN pip install --no-cache-dir -r requirements.txt
 
