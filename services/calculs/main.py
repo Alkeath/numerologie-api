@@ -26,8 +26,8 @@ app.add_middleware(
 app.include_router(calculs_router)
 
 # ✅ Route POST pour l'étape 1 des calculs
-@app.post("/generer-rapport")
-async def generer_rapport(request: Request):
+@app.post("/calculs-formulaire")
+async def calculs-formulaire (request: Request):
     print("✅ Requête reçue")
     donnees = await request.json()
     print("📥 Données :", donnees)
