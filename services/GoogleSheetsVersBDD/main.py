@@ -1,32 +1,40 @@
+import os
+import json
 import pandas as pd
 import psycopg2
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import os
 
-# Connexion à Google Sheets
+# ✅ Lecture des credentials JSON depuis la variable d'environnement
+google_creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+if not google_creds:
+    raise ValueError("⛔ La variable d'environnement GOOGLE_SHEETS_CREDENTIALS est introuvable.")
+
+creds_dict = json.loads(google_creds)
+
+# ✅ Connexion à Google Sheets
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("numerologie-import-bdd.json", scope)
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
 client = gspread.authorize(creds)
 
-# Ouvrir la feuille
+# ✅ Lecture des données Google Sheets
 SHEET_ID = "1oIRcJbtxh7g0nkFfjj0MLphDLBNpPOmU0OGnsX1ycbU"
 sheet = client.open_by_key(SHEET_ID).sheet1
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
 
-# Connexion à PostgreSQL via Railway
+# ✅ Connexion à PostgreSQL via Railway (les infos peuvent aussi venir de variables d'env si tu préfères)
 conn = psycopg2.connect(
     host="postgres.railway.internal",
     dbname="railway",
     user="postgres",
-    password="mDSIMZwHiqRIfAooxVfOXUsEFYzPojbj",
+    password=os.getenv("PGPASSWORD"),  # Recommandé
     port="5432"
 )
 
 cursor = conn.cursor()
 
-# Exemple : création d'une table (à adapter selon ton onglet)
+# ✅ Création de la table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS textes (
         id SERIAL PRIMARY KEY,
@@ -35,7 +43,7 @@ cursor.execute("""
     );
 """)
 
-# Insertion des lignes dans la table
+# ✅ Insertion des données
 for _, row in df.iterrows():
     cursor.execute("INSERT INTO textes (cle, contenu) VALUES (%s, %s)", (row["Clé"], row["Texte"]))
 
