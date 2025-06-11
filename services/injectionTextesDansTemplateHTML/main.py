@@ -13,9 +13,9 @@ import traceback
 app = FastAPI()
 
 # 📁 Chemins
-TEMPLATE_HTML_PATH = "app/templates/template_temporaire1/index.html"
-TEMPLATE_DIR = "app/templates/template_temporaire1"
-TEMP_HTML_DIR = "app/html_genere"
+TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
+TEMPLATE_DIR = "templates/template_temporaire1"
+TEMP_HTML_DIR = "html_genere"
 
 # 📦 Crée le dossier temporaire s’il n’existe pas
 os.makedirs(TEMP_HTML_DIR, exist_ok=True)
