@@ -13,6 +13,9 @@ WORKDIR /app
 # Copier les fichiers requis
 COPY . /app
 
+# ✅ Copier explicitement le template HTML
+COPY app/templates/template_temporaire1/ /app/app/templates/template_temporaire1/
+
 # Installer les dépendances Python
 RUN pip install fastapi[all] psycopg2-binary beautifulsoup4 python-multipart
 
