@@ -105,3 +105,12 @@ async def injecter_textes_depuis_bdd(request: Request):
         print("❌ Erreur dans injecter_textes_depuis_bdd()")
         print(traceback.format_exc())
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+
+# 🧹 Suppression automatique
+async def supprimer_fichier_apres_delai(path, delay=60):
+    await asyncio.sleep(delay)
+    if os.path.exists(path):
+        os.remove(path)
+        print(f"🧹 Fichier temporaire supprimé : {path}")
+
