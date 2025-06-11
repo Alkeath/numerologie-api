@@ -33,6 +33,8 @@ from pydantic import BaseModel
 from datetime import datetime, date
 import unicodedata
 import re
+import requests
+import os
 
 # ✅ Initialisation du routeur FastAPI
 router = APIRouter()
@@ -582,18 +584,50 @@ def etape_2_recalculs_final_et_affectations(data):
 
 
 
-    # pour visualiser les réslutat dans la console serveur ou Render
+    # pour visualiser les réslutat dans la console serveur ou Railway
     print("=== Données après étape 2 ===")
     for cle, valeur in data.items():
         print(f"{cle} : {valeur}")
 
+    #appel de la fonction de l'étape 3
+    data["url_html"] = etape_3_injection_textes_dans_html(data)
 
 
 
 
 
 
-#fonctions pour lancer les scripts des étapes depuis main.py
+
+########### Etape 3 ################
+
+ #Étape 3 : appelle l'API d'injection des textes dans le template HTML.
+ #Renvoie l'URL du HTML généré (ou chaîne vide en cas d’erreur).
+ 
+
+def etape_3_injection_textes_dans_html(data: dict) -> str:
+    try:
+        injection_url = os.getenv("INJECTION_HTML_URL")
+        if not injection_url:
+            raise ValueError("INJECTION_HTML_URL n’est pas définie dans les variables d’environnement.")
+        
+        print("🔁 Appel à l'API d'injection HTML...")
+        response = requests.post(injection_url, json=data)
+        response.raise_for_status()
+        
+        url_html = response.json().get("url_html", "")
+        print(f"✅ HTML généré : {url_html}")
+        return url_html
+    except Exception as e:
+        print(f"❌ Échec de l’injection des textes : {e}")
+        return ""
+
+
+
+
+
+
+#############fonctions pour lancer les scripts des étapes depuis main.py
+
 def traitement_etape_1(data):
     lignes = []  # pas utilisé ici mais conservé pour cohérence future
     etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
