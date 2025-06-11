@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
 import psycopg2
 import os
@@ -11,6 +12,14 @@ import asyncio
 import traceback
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ou restreint à ton domaine frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 📁 Chemins
 TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
