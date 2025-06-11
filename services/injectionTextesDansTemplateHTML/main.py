@@ -46,7 +46,13 @@ def get_cell_value(conn, table, column, row_key):
 # 🧠 Route principale d’injection
 @app.post("/injectionTextesDansTemplateHTML")
 async def injecter_textes_depuis_bdd(request: Request):
-    data = await request.json()  # ← Peut être vide si tout est dans le HTML
+    data = await request.json()
+
+    genre = data.get("Genre", "")
+    nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
+    nb_exp = str(data.get("NbExp_Final", "")).zfill(2)
+    nb_rea = str(data.get("NbRea_Final", "")).zfill(2)
+    nb_ame = str(data.get("NbAme_Final", "")).zfill(2)
 
     try:
         with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
@@ -59,8 +65,16 @@ async def injecter_textes_depuis_bdd(request: Request):
     for el in soup.find_all(attrs={"id": True}):
         id_val = el["id"]
         try:
-            table, colonne, cle = id_val.split("_", 2)
-            texte = get_cell_value(conn, table, colonne, cle)
+            table, colonne, ligne = id_val.split("_", 2)
+
+            colonne = colonne.replace("Genre", genre)
+            ligne = (ligne
+                     .replace("CdVX", f"CdV{nb_cdv}")
+                     .replace("ExpY", f"Exp{nb_exp}")
+                     .replace("ReaZ", f"Rea{nb_rea}")
+                     .replace("AmeQ", f"Ame{nb_ame}"))
+
+            texte = get_cell_value(conn, table, colonne, ligne)
             if texte:
                 el.clear()
                 el.append(texte)
@@ -70,7 +84,7 @@ async def injecter_textes_depuis_bdd(request: Request):
 
     conn.close()
 
-    # 🧾 Création fichier temporaire
+    # 💾 Création fichier temporaire
     fichier_id = str(uuid.uuid4())
     fichier_nom = f"{fichier_id}.html"
     chemin_complet = os.path.join(TEMP_HTML_DIR, fichier_nom)
@@ -78,14 +92,14 @@ async def injecter_textes_depuis_bdd(request: Request):
     with open(chemin_complet, "w", encoding="utf-8") as f:
         f.write(str(soup))
 
-    # ⏳ Planifier la suppression du fichier après 60 secondes
+    # ⏳ Planifie la suppression automatique
     asyncio.create_task(supprimer_fichier_apres_delai(chemin_complet, delay=60))
 
     base_url = str(request.base_url).rstrip("/")
     return {"url_html": f"{base_url}/html_temp/{fichier_nom}"}
 
 # 🧹 Suppression automatique
-async def supprimer_fichier_apres_delai(path, delay=60):
+deasync def supprimer_fichier_apres_delai(path, delay=60):
     await asyncio.sleep(delay)
     if os.path.exists(path):
         os.remove(path)
