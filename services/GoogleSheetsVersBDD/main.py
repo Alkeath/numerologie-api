@@ -39,8 +39,18 @@ for worksheet in spreadsheet.worksheets():
         print(f"⚠️ Onglet « {table_name} » vide, ignoré.")
         continue
 
-    # ❌ Supprime l'ancienne table si elle existe
-    cursor.execute(f'DROP TABLE IF EXISTS "{table_name}";')
+    # ❌ Supprime toutes les tables existantes dans la base PostgreSQL
+    cursor.execute("""
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema='public' AND table_type='BASE TABLE';
+    """)
+    tables = cursor.fetchall()
+    
+    for table in tables:
+        table_name = table[0]
+        cursor.execute(f'DROP TABLE IF EXISTS "{table_name}" CASCADE;')
+        print(f'🗑️ Table "{table_name}" supprimée')
+
 
     # ✅ Crée la table avec les noms de colonnes dynamiques
     column_defs = ", ".join([f'"{col}" TEXT' for col in df.columns])
