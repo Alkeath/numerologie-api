@@ -445,7 +445,7 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         "Nom_normalise": data["Nom_normalise"],
         "PrenomPremier_normalise": data["PrenomPremier_normalise"],
         "PrenomsComplets_normalise": data["PrenomsComplets_normalise"],
-        "DateDeNaissance": data["DateDeNaissance"]
+        "DateDeNaissance": data["DateDeNaissance"],
         "Genre": data["Genre_Formulaire"]
     }
 
