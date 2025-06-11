@@ -446,6 +446,7 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         "PrenomPremier_normalise": data["PrenomPremier_normalise"],
         "PrenomsComplets_normalise": data["PrenomsComplets_normalise"],
         "DateDeNaissance": data["DateDeNaissance"]
+        "Genre": data["Genre_Formulaire"]
     }
 
 
@@ -479,7 +480,7 @@ def etape_2_recalculs_final_et_affectations(data):
     print("📡 Vérification : appel_etape_2 bien reçue (début fonction étape 2)")
 
     # Récupération de la variable Genre
-    data["Genre"] = data.get("Genre_Formulaire", "")
+    data["Genre"] = data.get("Genre", "")
     
     
     # 1. 🔤 Texte normalisé pour tous les calculs à partir du nom complet
