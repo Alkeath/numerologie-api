@@ -318,6 +318,7 @@ def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
 def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
     
     # Récupération des champs bruts depuis le formulaire
+    Genre_Formulaire = data.get("Genre_Formulaire", "").strip()
     PrenomPremier_Formulaire = data.get("PrenomPremier_Formulaire", "").strip()
     PrenomsSecondaires_Formulaire = data.get("PrenomsSecondaires_Formulaire", "").strip()
     Nom_Formulaire = data.get("Nom_Formulaire", "").strip()
@@ -336,6 +337,7 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     Nom_normalise = normaliser_chaine(Nom)
 
     # Sauvegarde dans les variables de travail
+    data["Genre_Formulaire"] = Genre_Formulaire
     data["PrenomPremier"] = PrenomPremier
     data["PrenomsComplets"] = PrenomsComplets
     data["Nom"] = Nom
@@ -487,6 +489,7 @@ def etape_2_recalculs_final_et_affectations(data):
     texte_normalise = texte_prenom_normalise + data["Nom_normalise"]
     data["PrenomNom_Final_normalise"] = texte_normalise
     data["TextePrenom_Final_normalise"] = texte_prenom_normalise  # utilisé pour le nombre actif
+    data["Genre"] = data.get("Genre_Formulaire", "")
 
 
     # 2. 📅 Calcul du chemin de vie
