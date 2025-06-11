@@ -477,7 +477,11 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 def etape_2_recalculs_final_et_affectations(data):
 
     print("📡 Vérification : appel_etape_2 bien reçue (début fonction étape 2)")
-   
+
+    # Récupération de la variable Genre
+    data["Genre"] = data.get("Genre_Formulaire", "")
+    
+    
     # 1. 🔤 Texte normalisé pour tous les calculs à partir du nom complet
     approches_un_prenom = [
         "UnPrenomDefaut", "UnPrenomQuestions", "ChoixUnPrenom"
@@ -489,7 +493,7 @@ def etape_2_recalculs_final_et_affectations(data):
     texte_normalise = texte_prenom_normalise + data["Nom_normalise"]
     data["PrenomNom_Final_normalise"] = texte_normalise
     data["TextePrenom_Final_normalise"] = texte_prenom_normalise  # utilisé pour le nombre actif
-    data["Genre"] = data.get("Genre_Formulaire", "")
+
 
 
     # 2. 📅 Calcul du chemin de vie
