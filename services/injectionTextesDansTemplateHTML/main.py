@@ -99,7 +99,7 @@ async def injecter_textes_depuis_bdd(request: Request):
     return {"url_html": f"{base_url}/html_temp/{fichier_nom}"}
 
 # 🧹 Suppression automatique
-deasync def supprimer_fichier_apres_delai(path, delay=60):
+async def supprimer_fichier_apres_delai(path, delay=60):
     await asyncio.sleep(delay)
     if os.path.exists(path):
         os.remove(path)
