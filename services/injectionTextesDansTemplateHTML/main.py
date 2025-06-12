@@ -66,6 +66,9 @@ async def injecter_textes_depuis_bdd(request: Request):
         nb_rea = str(data.get("NbRea_Final", "")).zfill(2)
         nb_ame = str(data.get("NbAme_Final", "")).zfill(2)
 
+        # 📋 Affiche les nombres dans les logs
+        print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}")
+
         # Lecture du template HTML
         try:
             with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
@@ -115,7 +118,11 @@ async def injecter_textes_depuis_bdd(request: Request):
         asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=60))
 
         base_url = str(request.base_url).rstrip("/")
-        return JSONResponse(content={"url_html": f"{base_url}/html_temp/{fichier_id}/index.html"})
+        url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
+
+        print(f"✅ HTML généré : {url_html}")  # 👈 Pour affichage console Railway
+
+        return JSONResponse(content={"url_html": url_html})
 
     except Exception as e:
         print("❌ Erreur dans injecter_textes_depuis_bdd()")
