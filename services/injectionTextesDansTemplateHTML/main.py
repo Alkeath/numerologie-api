@@ -95,19 +95,18 @@ async def injecter_textes_depuis_bdd(request: Request):
                          .replace("AmeQ", f"Ame{nb_ame}"))
 
                 texte = get_cell_value(conn, table, colonne, ligne)
-                if texte:
-                    # Suppression complète du contenu existant
-                    el.clear()
-                    el.string = None  # Forcer la réinitialisation complète même en cas de contenu fragmenté
+                if texte is not None and isinstance(texte, str) and texte.strip() != "":
+                    el.clear()  # Supprime tout le contenu HTML existant
                 
                     lignes = texte.split("\n")
                     for i, ligne in enumerate(lignes):
                         if i > 0:
                             el.append(soup.new_tag("br"))
                         el.append(ligne)
+                
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
                 else:
-                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
+                    print(f"⚠️ Aucun contenu trouvé ou texte vide pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
 
             
             except Exception as e:
