@@ -95,6 +95,10 @@ async def injecter_textes_depuis_bdd(request: Request):
                 if texte:
                     el.clear()
                     el.append(texte)
+                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
+                else:
+                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
+
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
                 continue
