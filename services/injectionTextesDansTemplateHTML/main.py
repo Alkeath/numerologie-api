@@ -49,10 +49,11 @@ def get_cell_value(conn, table, column, row_key):
             query = f'SELECT "{column}" FROM "{table}" WHERE cle = %s'
             cur.execute(query, (row_key,))
             result = cur.fetchone()
-            return result[0] if result else None
+            return str(result[0]) if result and result[0] is not None else None
         except Exception as e:
             print(f"❌ Erreur SQL : {e} → table={table}, colonne={column}, ligne={row_key}")
             return None
+
 
 # 🧠 Route principale
 @app.post("/injectionTextesDansTemplateHTML")
