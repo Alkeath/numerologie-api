@@ -46,7 +46,7 @@ def get_db_connection():
 def get_cell_value(conn, table, column, row_key):
     with conn.cursor() as cur:
         try:
-            query = f"SELECT {column} FROM {table} WHERE cle = %s"
+            query = f'SELECT "{column}" FROM "{table}" WHERE cle = %s'
             cur.execute(query, (row_key,))
             result = cur.fetchone()
             return result[0] if result else None
