@@ -61,7 +61,7 @@ async def injecter_textes_depuis_bdd(request: Request):
     try:
         data = await request.json()
 
-        genre = data.get("Genre", "")
+        genre = data.get("Genre_Formulaire", "")
         nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
         nb_exp = str(data.get("NbExp_Final", "")).zfill(2)
         nb_rea = str(data.get("NbRea_Final", "")).zfill(2)
