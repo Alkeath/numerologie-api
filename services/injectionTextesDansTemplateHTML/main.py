@@ -94,9 +94,11 @@ async def injecter_textes_depuis_bdd(request: Request):
                 texte = get_cell_value(conn, table, colonne, ligne)
                 if texte:
                     el.clear()
-                    for line in texte.splitlines():
-                        el.append(line)
-                        el.append(soup.new_tag("br"))
+                    lignes = texte.split("\n")
+                    for i, ligne in enumerate(lignes):
+                        if i > 0:
+                            el.append(soup.new_tag("br"))
+                        el.append(ligne)
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
                 else:
                     print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
