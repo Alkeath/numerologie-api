@@ -96,7 +96,10 @@ async def injecter_textes_depuis_bdd(request: Request):
 
                 texte = get_cell_value(conn, table, colonne, ligne)
                 if texte:
+                    # Suppression complète du contenu existant
                     el.clear()
+                    el.string = None  # Forcer la réinitialisation complète même en cas de contenu fragmenté
+                
                     lignes = texte.split("\n")
                     for i, ligne in enumerate(lignes):
                         if i > 0:
@@ -105,6 +108,8 @@ async def injecter_textes_depuis_bdd(request: Request):
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
                 else:
                     print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
+
+            
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
                 continue
