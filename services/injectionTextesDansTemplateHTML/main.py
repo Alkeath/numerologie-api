@@ -66,10 +66,8 @@ async def injecter_textes_depuis_bdd(request: Request):
         nb_rea = str(data.get("NbRea_Final", "")).zfill(2)
         nb_ame = str(data.get("NbAme_Final", "")).zfill(2)
 
-        # 📋 Affiche les nombres dans les logs
         print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}")
 
-        # Lecture du template HTML
         try:
             with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
                 soup = BeautifulSoup(f, "html.parser")
@@ -78,7 +76,12 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         conn = get_db_connection()
 
-        # Injection des textes dans les éléments par ID
+        fichier_id = str(uuid.uuid4())
+        base_url = str(request.base_url).rstrip("/")
+        url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
+
+        print(f"🔗 URL HTML générée (pré-injection) : {url_html}")
+
         for el in soup.find_all(attrs={"id": True}):
             id_val = el["id"]
             try:
@@ -102,40 +105,30 @@ async def injecter_textes_depuis_bdd(request: Request):
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
                 else:
                     print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
-
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
                 continue
 
         conn.close()
 
-        # 💾 Crée un dossier temporaire unique pour cette version HTML
-        fichier_id = str(uuid.uuid4())
         dossier_temporaire = os.path.join(TEMP_HTML_DIR, fichier_id)
         os.makedirs(dossier_temporaire, exist_ok=True)
-
-        # Copie tous les fichiers et sous-dossiers du template original
         shutil.copytree(TEMPLATE_DIR, dossier_temporaire, dirs_exist_ok=True)
 
-        # Remplace le contenu du index.html par la version injectée
         chemin_index = os.path.join(dossier_temporaire, "index.html")
         with open(chemin_index, "w", encoding="utf-8") as f:
             f.write(str(soup))
 
-        # ⏳ Suppression planifiée
         asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=60))
 
-        base_url = str(request.base_url).rstrip("/")
-        url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
-
-        print(f"✅ HTML généré : {url_html}")  # 👈 Pour affichage console Railway
-
+        print(f"✅ HTML généré : {url_html}")
         return JSONResponse(content={"url_html": url_html})
 
     except Exception as e:
         print("❌ Erreur dans injecter_textes_depuis_bdd()")
         print(traceback.format_exc())
         return JSONResponse(status_code=500, content={"error": str(e)})
+        
 
 # 🧹 Supprime le dossier temporaire après un délai
 async def supprimer_fichier_apres_delai(path, delay=60):
