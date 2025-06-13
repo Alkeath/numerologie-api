@@ -73,12 +73,9 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         #EFFACER LES TEXTES
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
-            balise.string = ""  # si elle ne contient que du texte brut
-            if not balise.string:
-                balise.clear()  # sinon, on efface tout l'intérieur (y compris spans, br, etc.)
-            print(f"🧹 Contenu HTML entièrement effacé pour ID={balise['id']}")
-
-
+            balise.clear()
+            print(f"✔️ Zone nettoyée : ID={balise['id']}")
+        
 
 
 
