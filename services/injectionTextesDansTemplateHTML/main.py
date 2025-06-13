@@ -70,23 +70,10 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         conn = get_db_connection()
 
-        # Parcourir toutes les balises avec un id
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
-            enfants_a_supprimer = []
+            balise.clear()  # vide tout l'intérieur de la balise, <br/>, <span>, texte, etc.
+            print(f"🧹 Contenu HTML vidé pour ID={balise['id']}", flush=True)
         
-            for enfant in balise.contents:
-                if isinstance(enfant, NavigableString):
-                    enfants_a_supprimer.append(enfant)
-                elif isinstance(enfant, Tag) and enfant.name == "br":
-                    enfants_a_supprimer.append(enfant)
-            
-            for elem in enfants_a_supprimer:
-                elem.extract()
-        
-            print(f"🧹 Texte et <br/> effacés pour ID={balise['id']}", flush=True)
-        
-                # 🖋️ Injection des textes dans chaque balise avec id
-
 
 
 
