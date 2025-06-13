@@ -65,7 +65,9 @@ async def injecter_textes_depuis_bdd(request: Request):
         # 🧹 Effacer uniquement les contenus des éléments ayant un ID
         for el in soup.find_all(attrs={"id": True}):
             try:
-                el.clear()
+                while el.contents:
+                    el.contents[0].extract()
+
             except Exception as e:
                 print(f"⚠️ Problème en effaçant le contenu de {el.get('id', '[aucun ID]')} : {e}", flush=True)
                 continue
