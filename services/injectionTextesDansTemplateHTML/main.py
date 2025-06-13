@@ -81,7 +81,7 @@ async def injecter_textes_depuis_bdd(request: Request):
         base_url = str(request.base_url).rstrip("/")
         url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
 
-        print(f"🔗 URL HTML générée (pré-injection) : {url_html}")
+        print(f"➡️ URL du fichier temporaire : {url_html}", flush=True)
 
         for el in soup.find_all(attrs={"id": True}):
             id_val = el["id"]
@@ -129,7 +129,7 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=60))
 
-        print(f"✅ HTML généré : {url_html}")
+        print("✅ HTML généré :", url_html, flush=True)
         return JSONResponse(content={"url_html": url_html})
 
     except Exception as e:
