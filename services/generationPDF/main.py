@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import uuid
 import os
-from utils.generate_pdf import convert_html_to_pdf
+from generate_pdf import convert_html_to_pdf
 
 app = FastAPI()
 
