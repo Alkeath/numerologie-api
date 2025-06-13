@@ -77,12 +77,17 @@ async def injecter_textes_depuis_bdd(request: Request):
                     current.extract()
                 current = next_node
         
-            # Force la suppression totale de tous les enfants de la balise de départ
             while debut.contents:
                 debut.contents[0].extract()
         
             print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
-
+        
+        # ✅ Correction pour la dernière balise
+        if balises_cibles:
+            dernier = balises_cibles[-1]
+            while dernier.contents:
+                dernier.contents[0].extract()
+            print(f"🧹 Zone vidée pour la dernière balise ID={dernier['id']}", flush=True)
 
 
         fichier_id = str(uuid.uuid4())
