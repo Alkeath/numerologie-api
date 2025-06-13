@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from calculs_api import router as calculs_router
-from calculs_api import traitement_etape_1
+from calculs_api import traitement_etape_1, generer_rapport_depuis_donnees
 
 app = FastAPI()
 
@@ -27,7 +28,7 @@ app.include_router(calculs_router)
 
 # ✅ Route POST pour l'étape 1 des calculs
 @app.post("/calculs-formulaire")
-async def calculs_formulaire (request: Request):
+async def calculs_formulaire(request: Request):
     print("✅ Requête reçue")
     donnees = await request.json()
     print("📥 Données :", donnees)
@@ -36,6 +37,13 @@ async def calculs_formulaire (request: Request):
         "message": "Étape 1 terminée",
         "donnees": donnees
     }
+
+# ✅ Route POST pour l’enchaînement injection HTML + génération PDF (étapes 3 + 4)
+@app.post("/genererRapport")
+async def generer_rapport(request: Request):
+    print("🧠 Requête reçue pour génération complète du rapport")
+    data = await request.json()
+    return generer_rapport_depuis_donnees(data)
 
 # ✅ Lancement du serveur si exécuté directement (utile pour Docker/Cloud Run)
 if __name__ == "__main__":
