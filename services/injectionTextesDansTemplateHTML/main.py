@@ -140,7 +140,7 @@ async def injecter_textes_depuis_bdd(request: Request):
         
 
 # 🧹 Supprime le dossier temporaire après un délai
-async def supprimer_fichier_apres_delai(path, delay=60):
+async def supprimer_fichier_apres_delai(path, delay=300):
     await asyncio.sleep(delay)
     if os.path.exists(path):
         shutil.rmtree(path)
