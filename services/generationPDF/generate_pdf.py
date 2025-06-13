@@ -27,4 +27,13 @@ async def convert_html_to_pdf(url: str) -> str:
     })
 
     await browser.close()
+    asyncio.create_task(supprimer_fichier_pdf_apres_delai(pdf_path))
     return pdf_path
+
+
+async def supprimer_fichier_pdf_apres_delai(path, delay=300):
+    await asyncio.sleep(delay)
+    if os.path.exists(path):
+        os.remove(path)
+        print(f"🧹 PDF temporaire supprimé : {path}")
+
