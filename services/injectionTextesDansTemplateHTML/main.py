@@ -98,33 +98,16 @@ async def injecter_textes_depuis_bdd(request: Request):
 
 
         # 🖋️ Injection des textes dans chaque balise avec id
-        for el in soup.find_all(attrs={"id": True}):
-            id_val = el["id"]
-            try:
-                table, colonne, ligne_cle = id_val.split("_", 3)
 
-                colonne = colonne.replace("Genre", genre)
-                ligne_cle = (ligne_cle
-                    .replace("CdVX", f"CdV{nb_cdv}")
-                    .replace("ExpY", f"Exp{nb_exp}")
-                    .replace("ReaZ", f"Rea{nb_rea}")
-                    .replace("AmeQ", f"Ame{nb_ame}"))
 
-                texte = get_cell_value(conn, table, colonne, ligne_cle)
 
-                if texte is not None:
-                    lignes = texte.split("\n")
-                    for i, ligne in enumerate(lignes):
-                        if i > 0 or ligne.strip() == "":
-                            el.append(soup.new_tag("br"))
-                        if ligne.strip():
-                            el.append(NavigableString(ligne))
-                    print(f"✅ Injection réussie pour ID={id_val} → {table}.{colonne}[{ligne_cle}]", flush=True)
-                else:
-                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → {table}.{colonne}[{ligne_cle}]", flush=True)
 
-            except Exception as e:
-                print(f"⚠️ Erreur injection ID={id_val} : {e}", flush=True)
+
+
+
+
+
+
 
         
 
