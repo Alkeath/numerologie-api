@@ -67,7 +67,7 @@ async def injecter_textes_depuis_bdd(request: Request):
         nb_rea = str(data.get("NbRea_Final", "")).zfill(2)
         nb_ame = str(data.get("NbAme_Final", "")).zfill(2)
 
-        print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}")
+        print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}, Genre: {genre}")
 
         try:
             with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
