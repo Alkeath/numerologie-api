@@ -65,11 +65,12 @@ async def injecter_textes_depuis_bdd(request: Request):
         # 🧹 Vide toutes les balises avec id et class (texte, <br>, etc.)
         for el in soup.find_all(attrs={"id": True, "class": True}):
             try:
-                el.clear()  # Vide tout, y compris balises internes
-                print(f"🧹 Zone totalement vidée : ID={el['id']}", flush=True)
+                print(f"Avant suppression – ID={el['id']}, contenu : {repr(el)}", flush=True)
+                for child in list(el.contents):
+                    child.extract()
+                print(f"Après suppression – ID={el['id']}, contenu : {repr(el)}", flush=True)
             except Exception as e:
                 print(f"❌ Erreur sur ID={el['id']} : {e}", flush=True)
-
 
 
         fichier_id = str(uuid.uuid4())
