@@ -98,15 +98,15 @@ async def injecter_textes_depuis_bdd(request: Request):
                 
                 texte = get_cell_value(conn, table, colonne, ligne)
                 if texte is not None:
-                    lignes_texte = texte.split("\n")
-                    contenu_injecte = []
+                    # Efface tout le contenu HTML précédent du bloc
+                    el.clear()
                 
-                    for i, ligne_texte in enumerate(lignes_texte):
+                    # Recrée les lignes avec <br> pour chaque saut de ligne
+                    lignes_texte = texte.split("\n")
+                    for i, ligne in enumerate(lignes_texte):
                         if i > 0:
-                            contenu_injecte.append(soup.new_tag("br"))
-                        contenu_injecte.append(soup.new_string(ligne_texte))
-                    
-                    el.contents = contenu_injecte  # ✅ Remplace TOUT le contenu de l’élément, proprement
+                            el.append(soup.new_tag("br"))
+                        el.append(soup.new_string(ligne))
                 
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
                 else:
