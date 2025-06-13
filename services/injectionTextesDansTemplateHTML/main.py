@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, NavigableString
 import psycopg2
 import os
 import uuid
