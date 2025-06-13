@@ -97,47 +97,36 @@ async def injecter_textes_depuis_bdd(request: Request):
             print(f"🧹 Zone vidée pour la dernière balise ID={dernier['id']}", flush=True)
 
 
-
-        # 📥 injection des textes
+        # 🖋️ Injection des textes dans chaque balise avec id
         for el in soup.find_all(attrs={"id": True}):
             id_val = el["id"]
             try:
-                table, colonne, ligne_cle = id_val.split("_", 2)
-        
+                table, colonne, ligne_cle = id_val.split("_", 3)
+
                 colonne = colonne.replace("Genre", genre)
                 ligne_cle = (ligne_cle
-                                .replace("CdVX", f"CdV{nb_cdv}")
-                                .replace("ExpY", f"Exp{nb_exp}")
-                                .replace("ReaZ", f"Rea{nb_rea}")
-                                .replace("AmeQ", f"Ame{nb_ame}"))
-        
+                    .replace("CdVX", f"CdV{nb_cdv}")
+                    .replace("ExpY", f"Exp{nb_exp}")
+                    .replace("ReaZ", f"Rea{nb_rea}")
+                    .replace("AmeQ", f"Ame{nb_ame}"))
+
                 texte = get_cell_value(conn, table, colonne, ligne_cle)
+
                 if texte is not None:
-                    # Nettoyer l'élément (supprime tout contenu)
-                    el.clear()
-                
-                    # Gérer les multiples sauts de ligne consécutifs
                     lignes = texte.split("\n")
                     for i, ligne in enumerate(lignes):
-                        if i > 0:
+                        if i > 0 or ligne.strip() == "":
                             el.append(soup.new_tag("br"))
-                        if ligne.strip() == "":
-                            # Saut vide : ajouter un <br> supplémentaire
-                            el.append(soup.new_tag("br"))
-                        else:
+                        if ligne.strip():
                             el.append(NavigableString(ligne))
-                
-                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+                    print(f"✅ Injection réussie pour ID={id_val} → {table}.{colonne}[{ligne_cle}]", flush=True)
                 else:
-                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → {table}.{colonne}[{ligne_cle}]", flush=True)
 
-            
             except Exception as e:
-                print(f"⚠️ Problème avec l’ID {id_val} : {e}")
-                continue
+                print(f"⚠️ Erreur injection ID={id_val} : {e}", flush=True)
 
-        conn.close()
-
+        
 
         fichier_id = str(uuid.uuid4())
         base_url = str(request.base_url).rstrip("/")
