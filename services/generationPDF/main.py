@@ -1,13 +1,19 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-import subprocess
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse, JSONResponse
+from pydantic import BaseModel
+import uuid
+import os
+from utils.generate_pdf import convert_html_to_pdf
 
 app = FastAPI()
 
-@app.get("/generer-pdf")
-async def generer_pdf():
+class PDFRequest(BaseModel):
+    html_url: str  # URL complète du fichier HTML injecté (ex: http://.../fichier.html)
+
+@app.post("/generationPDF")
+async def generation_pdf(req: PDFRequest):
     try:
-        subprocess.run(["node", "generate_pdf.js"], check=True)
-        return FileResponse("rapport_test.pdf", media_type="application/pdf", filename="rapport_test.pdf")
-    except subprocess.CalledProcessError as e:
-        return {"error": f"Erreur de génération : {e}"}
+        pdf_path = await convert_html_to_pdf(req.html_url)
+        return FileResponse(pdf_path, media_type='application/pdf', filename=os.path.basename(pdf_path))
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
