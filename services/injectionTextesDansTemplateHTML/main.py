@@ -77,7 +77,7 @@ async def injecter_textes_depuis_bdd(request: Request):
             balise.string = ""
             if not balise.string:
                 balise.clear()
-            print(f"{balise['id']} => contenu restant :", repr(balise.decode_contents()))
+            #print(f"{balise['id']} => contenu restant :", repr(balise.decode_contents()))
 
         # ✨ Injecter les textes depuis la BDD
         for el in soup.find_all(attrs={"id": True}):
@@ -99,10 +99,7 @@ async def injecter_textes_depuis_bdd(request: Request):
                     for i, ligne in enumerate(lignes):
                         if i > 0:
                             el.append(soup.new_tag("br"))
-                        if ligne.strip() == "":
-                            el.append(soup.new_tag("br"))
-                        else:
-                            el.append(NavigableString(ligne))
+                        el.append(NavigableString(ligne))
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
                 else:
                     print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
