@@ -94,6 +94,9 @@ async def traiter_injection(request):
 
     asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=300))
 
+    # 🔊 Afficher  l'URL à fin
+     print(f"\n✅ Injection terminée — URL finale : {url_html}\n", flush=True)
+    
     return {"url_html": url_html}
 
 async def supprimer_fichier_apres_delai(path, delay=300):
