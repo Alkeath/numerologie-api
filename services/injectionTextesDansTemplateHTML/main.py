@@ -64,7 +64,7 @@ async def injecter_textes_depuis_bdd(request: Request):
 
 
         # 🧹 Supprime uniquement les balises <span>, <br> ET le texte brut (NavigableString) entre deux balises avec id et class
-        balises_cibles = soup.find_all(lambda tag: tag.has_attr("id") and tag.has_attr("class"))
+        balises_cibles = soup.find_all(lambda tag: tag.has_attr("id"))
         
         for i in range(len(balises_cibles) - 1):
             debut = balises_cibles[i]
@@ -82,13 +82,12 @@ async def injecter_textes_depuis_bdd(request: Request):
         
             print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
         
-        # ✅ Correction pour la dernière balise
+        # ✅ Ne pas oublier la dernière balise
         if balises_cibles:
             dernier = balises_cibles[-1]
             while dernier.contents:
                 dernier.contents[0].extract()
             print(f"🧹 Zone vidée pour la dernière balise ID={dernier['id']}", flush=True)
-
 
         fichier_id = str(uuid.uuid4())
         base_url = str(request.base_url).rstrip("/")
