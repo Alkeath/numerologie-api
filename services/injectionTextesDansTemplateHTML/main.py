@@ -99,23 +99,21 @@ async def injecter_textes_depuis_bdd(request: Request):
                                 .replace("AmeQ", f"Ame{nb_ame}"))
         
                 texte = get_cell_value(conn, table, colonne, ligne_cle)
-        
                 if texte is not None:
-                    # Supprime tout le contenu existant (texte ou balises)
-                    while el.contents:
-                        el.contents[0].extract()
-        
-                    # Injecte les lignes une par une
-                    lignes = texte.split("\n")
-                    for i, ligne_texte in enumerate(lignes):
-                        if i > 0:
-                            el.append(soup.new_tag("br"))
-                        el.append(NavigableString(ligne_texte))
-        
+                    # 🔧 Reconstruit le contenu HTML avec <br> à chaque saut de ligne
+                    html_formate = "<br/>".join(BeautifulSoup(texte, "html.parser").get_text().split("\n"))
+                
+                    # 💥 Remplace complètement le contenu de l'élément avec un nouveau fragment HTML
+                    el.clear()
+                    fragment = BeautifulSoup(html_formate, "html.parser")
+                    for sub_el in fragment.contents:
+                        el.append(sub_el)
+                
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
                 else:
                     print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
-        
+
+            
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
                 continue
