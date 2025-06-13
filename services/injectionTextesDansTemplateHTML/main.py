@@ -73,9 +73,10 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         #EFFACER LES TEXTES
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
-            balise.contents = []  # Vide complètement tous les enfants
-        
-
+            balise.string = ""
+            if not balise.string:
+                balise.clear()
+            print(f"{balise['id']} => contenu restant :", repr(balise.decode_contents()))
 
 
 
