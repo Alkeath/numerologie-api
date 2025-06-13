@@ -97,24 +97,37 @@ async def injecter_textes_depuis_bdd(request: Request):
                          .replace("AmeQ", f"Ame{nb_ame}"))
 
                 # 📥 Récupération du texte
-                texte = get_cell_value(conn, table, colonne, ligne)
-                if texte is not None:
-                    # 🔁 Vide complètement la balise, y compris tous les nœuds enfants
-                    el.clear()
+                for el in soup.find_all(attrs={"id": True}):
+                    id_val = el["id"]
+                    try:
+                        table, colonne, ligne_cle = id_val.split("_", 2)
                 
-                    # 🧾 Découpe le texte selon les sauts de ligne
-                    lignes = texte.split("\n")
+                        colonne = colonne.replace("Genre", genre)
+                        ligne_cle = (ligne_cle
+                                     .replace("CdVX", f"CdV{nb_cdv}")
+                                     .replace("ExpY", f"Exp{nb_exp}")
+                                     .replace("ReaZ", f"Rea{nb_rea}")
+                                     .replace("AmeQ", f"Ame{nb_ame}"))
                 
-                    # ➕ Ajoute chaque ligne avec un <br> si besoin
-                    for i, ligne in enumerate(lignes):
-                        if i > 0:
-                            el.append(soup.new_tag("br"))
-                        el.append(NavigableString(ligne))
+                        texte = get_cell_value(conn, table, colonne, ligne_cle)
                 
-                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}", flush=True)
-                else:
-                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}", flush=True)
+                        if texte is not None:
+                            # Supprime tout le contenu existant (texte ou balises)
+                            while el.contents:
+                                el.contents[0].extract()
+                
+                            # Injecte les lignes une par une
+                            lignes = texte.split("\n")
+                            for i, ligne_texte in enumerate(lignes):
+                                if i > 0:
+                                    el.append(soup.new_tag("br"))
+                                el.append(NavigableString(ligne_texte))
+                
+                            print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+                        else:
+                            print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
 
+                
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
                 continue
