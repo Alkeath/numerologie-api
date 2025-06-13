@@ -29,12 +29,14 @@ Ce découpage assure modularité, scalabilité et clarté du traitement, tout en
 
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from datetime import datetime, date
 import unicodedata
 import re
 import requests
 import os
+import io
 
 # ✅ Initialisation du routeur FastAPI
 router = APIRouter()
@@ -628,27 +630,24 @@ def etape_3_injection_textes_dans_html(data: dict) -> str:
 
 #Génération du pdf à partir du HTML avec les textes injectés
 
-def etape_4_generation_pdf_depuis_html(url_html: str) -> str:
+def etape_4_generation_pdf_depuis_html(url_html: str):
     try:
         generation_pdf_url = os.getenv("GENERATION_PDF_URL")
         if not generation_pdf_url:
-            raise ValueError("GENERATION_PDF_URL n’est pas définie dans les variables d’environnement.")
-        
-        print("📤 Appel à l'API de génération de PDF...")
+            raise ValueError("GENERATION_PDF_URL non définie")
+
+        print("📤 Appel à l'API PDF...")
         response = requests.post(generation_pdf_url, json={"html_url": url_html})
         response.raise_for_status()
-        
-        # Soit tu renvoies l'URL, soit tu traites la réponse binaire ici (selon l'API)
-        pdf_filename = f"{uuid.uuid4()}.pdf"
-        pdf_path = os.path.join("/tmp", pdf_filename)
-        with open(pdf_path, "wb") as f:
-            f.write(response.content)
 
-        print(f"📄 PDF généré et stocké temporairement : {pdf_path}")
-        return pdf_path
+        pdf_bytes = response.content
+        print("✅ PDF généré avec succès (contenu récupéré)")
+
+        # Retourne un StreamingResponse vers le frontend
+        return StreamingResponse(io.BytesIO(pdf_bytes), media_type="application/pdf")
     except Exception as e:
-        print(f"❌ Échec de la génération du PDF : {e}")
-        return ""
+        print(f"❌ Erreur lors de la génération du PDF : {e}")
+        return None
 
 
 
