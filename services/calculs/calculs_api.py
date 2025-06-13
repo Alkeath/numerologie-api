@@ -615,10 +615,39 @@ def etape_3_injection_textes_dans_html(data: dict) -> str:
         response.raise_for_status()
         
         url_html = response.json().get("url_html", "")
-        print(f"✅ HTML généré : {url_html}")
-        return url_html
+        pdf_path = etape_4_generation_pdf_depuis_html(url_html)
+        return pdf_path
     except Exception as e:
         print(f"❌ Échec de l’injection des textes : {e}")
+        return ""
+
+
+
+
+########### Etape 4 ################
+
+#Génération du pdf à partir du HTML avec les textes injectés
+
+def etape_4_generation_pdf_depuis_html(url_html: str) -> str:
+    try:
+        generation_pdf_url = os.getenv("GENERATION_PDF_URL")
+        if not generation_pdf_url:
+            raise ValueError("GENERATION_PDF_URL n’est pas définie dans les variables d’environnement.")
+        
+        print("📤 Appel à l'API de génération de PDF...")
+        response = requests.post(generation_pdf_url, json={"html_url": url_html})
+        response.raise_for_status()
+        
+        # Soit tu renvoies l'URL, soit tu traites la réponse binaire ici (selon l'API)
+        pdf_filename = f"{uuid.uuid4()}.pdf"
+        pdf_path = os.path.join("/tmp", pdf_filename)
+        with open(pdf_path, "wb") as f:
+            f.write(response.content)
+
+        print(f"📄 PDF généré et stocké temporairement : {pdf_path}")
+        return pdf_path
+    except Exception as e:
+        print(f"❌ Échec de la génération du PDF : {e}")
         return ""
 
 
