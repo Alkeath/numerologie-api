@@ -72,30 +72,16 @@ async def injecter_textes_depuis_bdd(request: Request):
 
 
         #effacer les textes
+        from bs4 import BeautifulSoup, NavigableString, Tag
+        
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
-            nouveaux_contenus = []
-        
-            for enfant in balise.contents:
+            for enfant in list(balise.descendants):
                 if isinstance(enfant, NavigableString):
-                    # Remplacer le texte affiché par une chaîne vide
-                    nouveaux_contenus.append("")
+                    enfant.replace_with("")  # Remplace le texte affiché par une chaîne vide
                 elif isinstance(enfant, Tag) and enfant.name == "br":
-                    # Remplacer la balise <br> par une chaîne vide (même effet visuel)
-                    nouveaux_contenus.append("")
-                else:
-                    # Conserver les autres éléments intacts
-                    nouveaux_contenus.append(enfant)
-        
-            # Réassigner les nouveaux contenus
-            balise.clear()
-            for elem in nouveaux_contenus:
-                if isinstance(elem, str):
-                    balise.append(NavigableString(elem))
-                else:
-                    balise.append(elem)
-        
-            print(f"🧹 Texte et <br/> remplacés par \"\" pour ID={balise['id']}", flush=True)
-        
+                    enfant.replace_with("")  # Remplace <br> par une chaîne vide
+            print(f"🧹 Texte et <br/> remplacés pour ID={balise['id']}", flush=True)
+
 
 
 
