@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
+from bs4 import NavigableString
 import psycopg2
 import os
 import uuid
@@ -95,23 +96,23 @@ async def injecter_textes_depuis_bdd(request: Request):
                          .replace("ReaZ", f"Rea{nb_rea}")
                          .replace("AmeQ", f"Ame{nb_ame}"))
 
-                
-                texte = get_cell_value(conn, table, colonne, ligne)
+            
                 if texte is not None:
-                    # Efface tout le contenu HTML précédent du bloc
+                    # 🔁 Vide complètement la balise, y compris tous les nœuds enfants
                     el.clear()
                 
-                    # Recrée les lignes avec <br> pour chaque saut de ligne
-                    lignes_texte = texte.split("\n")
-                    for i, ligne in enumerate(lignes_texte):
+                    # 🧾 Découpe le texte selon les sauts de ligne
+                    lignes = texte.split("\n")
+                
+                    # ➕ Ajoute chaque ligne avec un <br> si besoin
+                    for i, ligne in enumerate(lignes):
                         if i > 0:
                             el.append(soup.new_tag("br"))
-                        el.append(soup.new_string(ligne))
+                        el.append(NavigableString(ligne))
                 
-                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
+                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}", flush=True)
                 else:
-                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}")
-
+                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne}", flush=True)
 
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
@@ -129,7 +130,7 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=60))
 
-        print("✅ HTML généré :", url_html, flush=True)
+        print("➡️ HTML généré :", url_html, flush=True)
         return JSONResponse(content={"url_html": url_html})
 
     except Exception as e:
