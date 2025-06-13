@@ -62,15 +62,23 @@ async def injecter_textes_depuis_bdd(request: Request):
         except FileNotFoundError:
             raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
 
-        # 🧹 Vide toutes les balises avec id et class (texte, <br>, etc.)
-        for el in soup.find_all(attrs={"id": True, "class": True}):
-            try:
-                print(f"Avant suppression – ID={el['id']}, contenu : {repr(el)}", flush=True)
-                for child in list(el.contents):
-                    child.extract()
-                print(f"Après suppression – ID={el['id']}, contenu : {repr(el)}", flush=True)
-            except Exception as e:
-                print(f"❌ Erreur sur ID={el['id']} : {e}", flush=True)
+        # 🧹 Supprime tout ce qui se trouve entre deux balises avec id et class
+        balises_cibles = soup.find_all(lambda tag: tag.has_attr("id") and tag.has_attr("class"))
+        
+        for i in range(len(balises_cibles) - 1):
+            debut = balises_cibles[i]
+            fin = balises_cibles[i + 1]
+        
+            current = debut.next_sibling
+            while current and current != fin:
+                next_node = current.next_sibling
+                current.extract()
+                current = next_node
+        
+            # Vide également le contenu de la balise de départ
+            debut.clear()
+            print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
+
 
 
         fichier_id = str(uuid.uuid4())
