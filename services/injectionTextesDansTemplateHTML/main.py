@@ -71,17 +71,24 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         conn = get_db_connection()
 
-
-        #effacer les textes
+        
+        def vider_balise(balise):
+            for descendant in list(balise.descendants):
+                # Supprimer tous les textes visibles
+                if isinstance(descendant, NavigableString):
+                    descendant.replace_with("")
+                # Supprimer tous les <br>
+                elif isinstance(descendant, Tag) and descendant.name == "br":
+                    descendant.decompose()
+                # Supprimer le contenu des <span> internes SANS id
+                elif isinstance(descendant, Tag) and descendant.name == "span" and not descendant.has_attr("id"):
+                    descendant.clear()
+        
+        # Appliquer à toutes les balises avec un id
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
-            for enfant in list(balise.descendants):
-                if isinstance(enfant, NavigableString):
-                    enfant.replace_with("")  # Remplace le texte affiché par une chaîne vide
-                elif isinstance(enfant, Tag) and enfant.name == "br":
-                    enfant.replace_with("")  # Remplace <br> par une chaîne vide
-            print(f"🧹 Texte et <br/> remplacés pour ID={balise['id']}", flush=True)
-
-
+            vider_balise(balise)
+            print(f"🧹 Zone entièrement vidée pour ID={balise['id']}", flush=True)
+        
 
 
 
