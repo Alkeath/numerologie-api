@@ -66,16 +66,15 @@ async def injecter_textes_depuis_bdd(request: Request):
         for el in soup.find_all(attrs={"id": True}):
             try:
                 parent = el.parent
-                # ⚠️ On ne vide le parent que s'il ne porte pas lui-même d'id
-                if not parent.has_attr("id"):
+                if parent is not None and not parent.has_attr("id"):
                     parent.clear()
                 else:
                     el.clear()
-        
                 print(f"🧹 Zone vidée pour ID={el['id']}")
             except Exception as e:
                 print(f"❌ Erreur pendant l’effacement de la zone ID={el['id']} : {e}")
                 continue
+
 
         fichier_id = str(uuid.uuid4())
         base_url = str(request.base_url).rstrip("/")
