@@ -96,7 +96,8 @@ async def injecter_textes_depuis_bdd(request: Request):
                          .replace("ReaZ", f"Rea{nb_rea}")
                          .replace("AmeQ", f"Ame{nb_ame}"))
 
-            
+                # 📥 Récupération du texte
+                texte = get_cell_value(conn, table, colonne, ligne)
                 if texte is not None:
                     # 🔁 Vide complètement la balise, y compris tous les nœuds enfants
                     el.clear()
