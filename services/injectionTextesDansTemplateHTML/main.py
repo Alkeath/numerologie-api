@@ -72,15 +72,46 @@ async def injecter_textes_depuis_bdd(request: Request):
         conn = get_db_connection()
 
         #EFFACER LES TEXTES
+       # 🧹 Effacer tous les textes
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
             balise.string = ""
             if not balise.string:
                 balise.clear()
             print(f"{balise['id']} => contenu restant :", repr(balise.decode_contents()))
 
+        # ✨ Injecter les textes depuis la BDD
+        for el in soup.find_all(attrs={"id": True}):
+            id_val = el["id"]
+            try:
+                table, colonne, ligne_cle = id_val.split("_", 2)
 
+                colonne = colonne.replace("Genre", genre)
+                ligne_cle = (ligne_cle
+                                .replace("CdVX", f"CdV{nb_cdv}")
+                                .replace("ExpY", f"Exp{nb_exp}")
+                                .replace("ReaZ", f"Rea{nb_rea}")
+                                .replace("AmeQ", f"Ame{nb_ame}"))
 
-        
+                texte = get_cell_value(conn, table, colonne, ligne_cle)
+                if texte is not None:
+                    el.clear()
+                    lignes = texte.split("\n")
+                    for i, ligne in enumerate(lignes):
+                        if i > 0:
+                            el.append(soup.new_tag("br"))
+                        if ligne.strip() == "":
+                            el.append(soup.new_tag("br"))
+                        else:
+                            el.append(NavigableString(ligne))
+                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+                else:
+                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+
+            except Exception as e:
+                print(f"⚠️ Problème avec l’ID {id_val} : {e}")
+                continue
+
+        conn.close()
 
         fichier_id = str(uuid.uuid4())
         base_url = str(request.base_url).rstrip("/")
