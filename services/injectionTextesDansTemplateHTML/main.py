@@ -70,12 +70,32 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         conn = get_db_connection()
 
+
+        #effacer les textes
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
-            balise.clear()  # vide tout l'intérieur de la balise, <br/>, <span>, texte, etc.
-            print(f"🧹 Contenu HTML vidé pour ID={balise['id']}", flush=True)
+            nouveaux_contenus = []
         
-
-
+            for enfant in balise.contents:
+                if isinstance(enfant, NavigableString):
+                    # Remplacer le texte affiché par une chaîne vide
+                    nouveaux_contenus.append("")
+                elif isinstance(enfant, Tag) and enfant.name == "br":
+                    # Remplacer la balise <br> par une chaîne vide (même effet visuel)
+                    nouveaux_contenus.append("")
+                else:
+                    # Conserver les autres éléments intacts
+                    nouveaux_contenus.append(enfant)
+        
+            # Réassigner les nouveaux contenus
+            balise.clear()
+            for elem in nouveaux_contenus:
+                if isinstance(elem, str):
+                    balise.append(NavigableString(elem))
+                else:
+                    balise.append(elem)
+        
+            print(f"🧹 Texte et <br/> remplacés par \"\" pour ID={balise['id']}", flush=True)
+        
 
 
 
