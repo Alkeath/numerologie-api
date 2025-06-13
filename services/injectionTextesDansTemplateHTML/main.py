@@ -64,8 +64,6 @@ async def injecter_textes_depuis_bdd(request: Request):
 
 
         # 🧹 Supprime uniquement les balises <span>, <br> ET le texte brut (NavigableString) entre deux balises avec id et class
-        from bs4 import NavigableString
-        
         balises_cibles = soup.find_all(lambda tag: tag.has_attr("id") and tag.has_attr("class"))
         
         for i in range(len(balises_cibles) - 1):
@@ -79,10 +77,9 @@ async def injecter_textes_depuis_bdd(request: Request):
                     current.extract()
                 current = next_node
         
-            # Vide aussi proprement le contenu de la balise de départ, y compris les textes bruts
-            for child in list(debut.contents):
-                if getattr(child, "name", None) in ["span", "br"] or isinstance(child, NavigableString):
-                    child.extract()
+            # Force la suppression totale de tous les enfants de la balise de départ
+            while debut.contents:
+                debut.contents[0].extract()
         
             print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
 
