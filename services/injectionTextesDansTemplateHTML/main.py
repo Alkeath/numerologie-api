@@ -100,14 +100,19 @@ async def injecter_textes_depuis_bdd(request: Request):
         
                 texte = get_cell_value(conn, table, colonne, ligne_cle)
                 if texte is not None:
-                    # 🔧 Reconstruit le contenu HTML avec <br> à chaque saut de ligne
-                    html_formate = "<br/>".join(BeautifulSoup(texte, "html.parser").get_text().split("\n"))
-                
-                    # 💥 Remplace complètement le contenu de l'élément avec un nouveau fragment HTML
+                    # Nettoyer l'élément (supprime tout contenu)
                     el.clear()
-                    fragment = BeautifulSoup(html_formate, "html.parser")
-                    for sub_el in fragment.contents:
-                        el.append(sub_el)
+                
+                    # Gérer les multiples sauts de ligne consécutifs
+                    lignes = texte.split("\n")
+                    for i, ligne in enumerate(lignes):
+                        if i > 0:
+                            el.append(soup.new_tag("br"))
+                        if ligne.strip() == "":
+                            # Saut vide : ajouter un <br> supplémentaire
+                            el.append(soup.new_tag("br"))
+                        else:
+                            el.append(NavigableString(ligne))
                 
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
                 else:
