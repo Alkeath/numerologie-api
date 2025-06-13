@@ -126,11 +126,11 @@ async def injecter_textes_depuis_bdd(request: Request):
                             print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
                         else:
                             print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
-
                 
-            except Exception as e:
-                print(f"⚠️ Problème avec l’ID {id_val} : {e}")
-                continue
+                    except Exception as e:
+                        print(f"⚠️ Problème avec l’ID {id_val} : {e}")
+                        continue
+
 
         conn.close()
 
