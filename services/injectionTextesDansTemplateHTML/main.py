@@ -65,11 +65,16 @@ async def injecter_textes_depuis_bdd(request: Request):
         # 🧹 Effacer uniquement les contenus des éléments ayant un ID
         for el in soup.find_all(attrs={"id": True}):
             try:
-                while el.contents:
-                    el.contents[0].extract()
-
+                parent = el.parent
+                # ⚠️ On ne vide le parent que s'il ne porte pas lui-même d'id
+                if not parent.has_attr("id"):
+                    parent.clear()
+                else:
+                    el.clear()
+        
+                print(f"🧹 Zone vidée pour ID={el['id']}")
             except Exception as e:
-                print(f"⚠️ Problème en effaçant le contenu de {el.get('id', '[aucun ID]')} : {e}", flush=True)
+                print(f"❌ Erreur pendant l’effacement de la zone ID={el['id']} : {e}")
                 continue
 
         fichier_id = str(uuid.uuid4())
