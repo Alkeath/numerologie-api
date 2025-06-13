@@ -3,7 +3,6 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from bs4 import BeautifulSoup
-from bs4 import NavigableString
 import psycopg2
 import os
 import uuid
@@ -13,59 +12,91 @@ import traceback
 
 app = FastAPI()
 
+# 🔓 Middleware CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# 📁 Chemins
+TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
+TEMPLATE_DIR = "templates/template_temporaire1"
+TEMP_HTML_DIR = "html_genere"
+
+# 📦 Crée le dossier temporaire s’il n’existe pas
+os.makedirs(TEMP_HTML_DIR, exist_ok=True)
+
+# 📦 Sert les fichiers HTML temporaires avec assets
+app.mount("/html_temp", StaticFiles(directory=TEMP_HTML_DIR, html=True), name="html_temp")
+
+# 🔐 Connexion PostgreSQL (conservée au cas où tu la réutilises plus tard)
+def get_db_connection():
+    return psycopg2.connect(
+        host=os.getenv("PGHOST"),
+        port=os.getenv("PGPORT"),
+        dbname=os.getenv("PGDATABASE"),
+        user=os.getenv("PGUSER"),
+        password=os.getenv("PGPASSWORD")
+    )
+
+# 🧠 Route principale
 @app.post("/injectionTextesDansTemplateHTML")
-async def injection_textes(request: Request, data: dict):
-
-    # 📁 Chemins
-    TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
-    TEMPLATE_DIR = "templates/template_temporaire1"
-    TEMP_HTML_DIR = "html_genere"
-
-    # 🧾 Lecture du template
+async def injecter_textes_depuis_bdd(request: Request):
     try:
-        with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
-            soup = BeautifulSoup(f, "html.parser")
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
+        data = await request.json()
 
-    # 🧹 Suppression du contenu des balises avec un ID
-    for el in soup.find_all(attrs={"id": True}):
-        el.clear()
+        genre = data.get("Genre_Formulaire", "")
+        nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
+        nb_exp = str(data.get("NbExp_Final", "")).zfill(2)
+        nb_rea = str(data.get("NbRea_Final", "")).zfill(2)
+        nb_ame = str(data.get("NbAme_Final", "")).zfill(2)
 
-    # 🆔 Création d’un identifiant unique
-    fichier_id = str(uuid.uuid4())
-    temp_dir_path = os.path.join(TEMP_HTML_DIR, fichier_id)
-    os.makedirs(temp_dir_path, exist_ok=True)
+        print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}, Genre: {genre}")
 
-    # 📄 Copie des fichiers nécessaires (CSS, fonts, etc.)
-    for item in os.listdir(TEMPLATE_DIR):
-        s = os.path.join(TEMPLATE_DIR, item)
-        d = os.path.join(temp_dir_path, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, dirs_exist_ok=True)
-        elif item != "index.html":  # le HTML sera réécrit après
-            shutil.copy2(s, d)
-
-    # 💾 Sauvegarde du fichier HTML modifié
-    chemin_fichier_html = os.path.join(temp_dir_path, "index.html")
-    with open(chemin_fichier_html, "w", encoding="utf-8") as f:
-        f.write(str(soup))
-
-    # 🌐 Génération de l’URL du fichier temporaire
-    base_url = str(request.base_url).rstrip("/")
-    url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
-    print(f"🧹 HTML vidé généré : {url_html}", flush=True)
-
-    # ⏳ Suppression automatique après 300 secondes
-    async def supprimer_dossier():
-        await asyncio.sleep(300)
         try:
-            shutil.rmtree(temp_dir_path)
-            print(f"🗑️ Dossier temporaire supprimé : {temp_dir_path}", flush=True)
-        except Exception as e:
-            print(f"⚠️ Erreur lors de la suppression du dossier temporaire : {e}", flush=True)
+            with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
+                soup = BeautifulSoup(f, "html.parser")
+        except FileNotFoundError:
+            raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
 
-    asyncio.create_task(supprimer_dossier())
+        # 🧹 Effacer uniquement les contenus des éléments ayant un ID
+        for el in soup.find_all(attrs={"id": True}):
+            try:
+                el.clear()
+            except Exception as e:
+                print(f"⚠️ Problème en effaçant le contenu de {el.get('id', '[aucun ID]')} : {e}", flush=True)
+                continue
 
-    return {"url_html": url_html}
+        fichier_id = str(uuid.uuid4())
+        base_url = str(request.base_url).rstrip("/")
+        url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
+
+        print(f"➡️ URL du fichier temporaire : {url_html}", flush=True)
+
+        dossier_temporaire = os.path.join(TEMP_HTML_DIR, fichier_id)
+        os.makedirs(dossier_temporaire, exist_ok=True)
+        shutil.copytree(TEMPLATE_DIR, dossier_temporaire, dirs_exist_ok=True)
+
+        chemin_index = os.path.join(dossier_temporaire, "index.html")
+        with open(chemin_index, "w", encoding="utf-8") as f:
+            f.write(str(soup))
+
+        asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=300))
+
+        print("➡️ HTML vidé généré :", url_html, flush=True)
+        return JSONResponse(content={"url_html": url_html})
+
+    except Exception as e:
+        print("❌ Erreur dans injecter_textes_depuis_bdd()")
+        print(traceback.format_exc())
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+# 🧹 Supprime le dossier temporaire après un délai
+async def supprimer_fichier_apres_delai(path, delay=300):
+    await asyncio.sleep(delay)
+    if os.path.exists(path):
+        shutil.rmtree(path)
+        print(f"🧹 Dossier temporaire supprimé : {path}")
