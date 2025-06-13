@@ -66,14 +66,13 @@ async def injecter_textes_depuis_bdd(request: Request):
         print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}, Genre: {genre}")
 
         with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
-            soup = BeautifulSoup(f, "html.parser")
+            soup = BeautifulSoup(f.read(), "html.parser")
+
 
         conn = get_db_connection()
 
 
         #effacer les textes
-        from bs4 import BeautifulSoup, NavigableString, Tag
-        
         for balise in soup.find_all(lambda tag: tag.has_attr("id")):
             for enfant in list(balise.descendants):
                 if isinstance(enfant, NavigableString):
