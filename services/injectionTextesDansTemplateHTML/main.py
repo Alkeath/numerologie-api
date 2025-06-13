@@ -1,11 +1,21 @@
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from bs4 import BeautifulSoup
+from bs4 import NavigableString
+import psycopg2
+import os
+import uuid
+import shutil
+import asyncio
+import traceback
+
+app = FastAPI()
+
+
 @app.post("/injectionTextesDansTemplateHTML")
 async def injection_textes(request: Request, data: dict):
-    import uuid
-    import os
-    import shutil
-    import asyncio
-    from fastapi import Request, HTTPException
-    from bs4 import BeautifulSoup
 
     # 📁 Chemins
     TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
