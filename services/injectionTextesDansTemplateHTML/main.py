@@ -120,7 +120,7 @@ async def injecter_textes_depuis_bdd(request: Request):
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}")
                 continue
 
-            conn.close()
+        conn.close()
 
         dossier_temporaire = os.path.join(TEMP_HTML_DIR, fichier_id)
         os.makedirs(dossier_temporaire, exist_ok=True)
