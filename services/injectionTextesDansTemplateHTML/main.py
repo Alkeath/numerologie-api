@@ -62,13 +62,10 @@ async def injecter_textes_depuis_bdd(request: Request):
         except FileNotFoundError:
             raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
 
-        # 🧹 Efface uniquement les contenus textuels des balises avec un ID
-        for el in soup.find_all(attrs={"id": True}):
+        # 🧹 Vide complètement les balises avec ID et class
+        for el in soup.find_all(attrs={"id": True, "class": True}):
             try:
-                # Supprimer uniquement les textes directs, pas les balises enfants
-                for content in el.contents:
-                    if isinstance(content, NavigableString):
-                        content.extract()
+                el.clear()
                 print(f"🧹 Zone vidée pour ID={el['id']}", flush=True)
             except Exception as e:
                 print(f"❌ Erreur pendant l’effacement de la zone ID={el['id']} : {e}", flush=True)
