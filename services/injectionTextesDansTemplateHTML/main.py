@@ -62,7 +62,10 @@ async def injecter_textes_depuis_bdd(request: Request):
         except FileNotFoundError:
             raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
 
-        # 🧹 Supprime uniquement les balises <span> et <br> entre deux balises avec id et class
+
+        # 🧹 Supprime uniquement les balises <span>, <br> ET le texte brut (NavigableString) entre deux balises avec id et class
+        from bs4 import NavigableString
+        
         balises_cibles = soup.find_all(lambda tag: tag.has_attr("id") and tag.has_attr("class"))
         
         for i in range(len(balises_cibles) - 1):
@@ -72,16 +75,16 @@ async def injecter_textes_depuis_bdd(request: Request):
             current = debut.next_sibling
             while current and current != fin:
                 next_node = current.next_sibling
-                if getattr(current, "name", None) in ["span", "br"]:
+                if getattr(current, "name", None) in ["span", "br"] or isinstance(current, NavigableString):
                     current.extract()
                 current = next_node
         
-            # Vide également le contenu de la balise de départ
+            # Vide aussi proprement le contenu de la balise de départ, y compris les textes bruts
             for child in list(debut.contents):
-                if getattr(child, "name", None) in ["span", "br"] or isinstance(child, str):
+                if getattr(child, "name", None) in ["span", "br"] or isinstance(child, NavigableString):
                     child.extract()
         
-            print(f"🧹 Zone nettoyée entre ID={debut['id']} et ID={fin['id']}", flush=True)
+            print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
 
 
 
