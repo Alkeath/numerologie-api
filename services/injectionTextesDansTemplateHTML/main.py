@@ -25,14 +25,11 @@ app.add_middleware(
 TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
 TEMPLATE_DIR = "templates/template_temporaire1"
 TEMP_HTML_DIR = "html_genere"
-
-# 📦 Crée le dossier temporaire s’il n’existe pas
 os.makedirs(TEMP_HTML_DIR, exist_ok=True)
 
-# 📦 Sert les fichiers HTML temporaires avec assets
 app.mount("/html_temp", StaticFiles(directory=TEMP_HTML_DIR, html=True), name="html_temp")
 
-# 🔐 Connexion PostgreSQL (conservée au cas où tu la réutilises plus tard)
+# 🔐 Connexion PostgreSQL
 def get_db_connection():
     return psycopg2.connect(
         host=os.getenv("PGHOST"),
@@ -41,6 +38,18 @@ def get_db_connection():
         user=os.getenv("PGUSER"),
         password=os.getenv("PGPASSWORD")
     )
+
+# 🔍 Récupération du texte depuis la BDD
+def get_cell_value(conn, table, column, row_key):
+    with conn.cursor() as cur:
+        try:
+            query = f'SELECT "{column}" FROM "{table}" WHERE cle = %s'
+            cur.execute(query, (row_key,))
+            result = cur.fetchone()
+            return str(result[0]) if result and result[0] is not None else None
+        except Exception as e:
+            print(f"❌ Erreur SQL : {e} → table={table}, colonne={column}, ligne={row_key}")
+            return None
 
 # 🧠 Route principale
 @app.post("/injectionTextesDansTemplateHTML")
@@ -56,112 +65,64 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         print(f"🔢 Nombres reçus – CdV: {nb_cdv}, Exp: {nb_exp}, Rea: {nb_rea}, Ame: {nb_ame}, Genre: {genre}")
 
-        try:
-            with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
-                soup = BeautifulSoup(f, "html.parser")
-        except FileNotFoundError:
-            raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
+        with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
+            soup = BeautifulSoup(f, "html.parser")
 
+        conn = get_db_connection()
 
-         # 🔄 Récupère toutes les balises avec un ID
-        balises_cibles = soup.find_all(lambda tag: tag.has_attr("id"))
-        
+        # 🧹 Efface les contenus entre chaque paire de balises avec id+class
+        balises_cibles = soup.find_all(lambda tag: tag.has_attr("id") and tag.has_attr("class"))
         for i in range(len(balises_cibles) - 1):
             debut = balises_cibles[i]
             fin = balises_cibles[i + 1]
-            id_val = debut["id"]
-        
-            # 🔁 Nettoie tout ce qui se trouve entre deux balises ID
             current = debut.next_sibling
             while current and current != fin:
                 next_node = current.next_sibling
                 if getattr(current, "name", None) in ["span", "br"] or isinstance(current, NavigableString):
                     current.extract()
                 current = next_node
-        
-            # 🧹 Vide complètement la balise de départ
-            while debut.contents:
-                debut.contents[0].extract()
-        
-            # 📥 Injection du texte (si disponible)
+            # Supprimer aussi les contenus internes directs à la balise de départ
+            for child in list(debut.contents):
+                if getattr(child, "name", None) in ["span", "br"] or isinstance(child, NavigableString):
+                    child.extract()
+            print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
+
+        # 📥 Injection des textes
+        for el in soup.find_all(attrs={"id": True}):
+            id_val = el["id"]
             try:
                 table, colonne, ligne_cle = id_val.split("_", 2)
-        
                 colonne = colonne.replace("Genre", genre)
                 ligne_cle = (ligne_cle
                                 .replace("CdVX", f"CdV{nb_cdv}")
                                 .replace("ExpY", f"Exp{nb_exp}")
                                 .replace("ReaZ", f"Rea{nb_rea}")
                                 .replace("AmeQ", f"Ame{nb_ame}"))
-        
+
                 texte = get_cell_value(conn, table, colonne, ligne_cle)
-        
                 if texte is not None:
+                    el.clear()
                     lignes = texte.split("\n")
                     for i, ligne in enumerate(lignes):
                         if i > 0:
-                            debut.append(soup.new_tag("br"))
+                            el.append(soup.new_tag("br"))
                         if ligne.strip() == "":
-                            debut.append(soup.new_tag("br"))
+                            el.append(soup.new_tag("br"))
                         else:
-                            debut.append(NavigableString(ligne))
+                            el.append(NavigableString(ligne))
                     print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
                 else:
                     print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
-        
+
             except Exception as e:
                 print(f"⚠️ Problème avec l’ID {id_val} : {e}", flush=True)
                 continue
-        
-        # 🔁 Et pour la toute dernière balise de la page :
-        if balises_cibles:
-            dernier = balises_cibles[-1]
-            id_val = dernier["id"]
-            
-            while dernier.contents:
-                dernier.contents[0].extract()
-        
-            try:
-                table, colonne, ligne_cle = id_val.split("_", 2)
-        
-                colonne = colonne.replace("Genre", genre)
-                ligne_cle = (ligne_cle
-                                .replace("CdVX", f"CdV{nb_cdv}")
-                                .replace("ExpY", f"Exp{nb_exp}")
-                                .replace("ReaZ", f"Rea{nb_rea}")
-                                .replace("AmeQ", f"Ame{nb_ame}"))
-        
-                texte = get_cell_value(conn, table, colonne, ligne_cle)
-        
-                if texte is not None:
-                    lignes = texte.split("\n")
-                    for i, ligne in enumerate(lignes):
-                        if i > 0:
-                            dernier.append(soup.new_tag("br"))
-                        if ligne.strip() == "":
-                            dernier.append(soup.new_tag("br"))
-                        else:
-                            dernier.append(NavigableString(ligne))
-                    print(f"✅ Injection réussie pour ID={id_val} (dernière balise)", flush=True)
-                else:
-                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} (dernière balise)", flush=True)
-        
-            except Exception as e:
-                print(f"⚠️ Problème avec la dernière balise ID={id_val} : {e}", flush=True)
-        
-        # ✅ Fermer la connexion PostgreSQL proprement
+
         conn.close()
 
-
-
-
-
-        
         fichier_id = str(uuid.uuid4())
         base_url = str(request.base_url).rstrip("/")
         url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
-
-        print(f"➡️ URL du fichier temporaire : {url_html}", flush=True)
 
         dossier_temporaire = os.path.join(TEMP_HTML_DIR, fichier_id)
         os.makedirs(dossier_temporaire, exist_ok=True)
@@ -173,7 +134,7 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=300))
 
-        print("➡️ HTML vidé généré :", url_html, flush=True)
+        print("➡️ HTML généré :", url_html, flush=True)
         return JSONResponse(content={"url_html": url_html})
 
     except Exception as e:
@@ -181,7 +142,7 @@ async def injecter_textes_depuis_bdd(request: Request):
         print(traceback.format_exc())
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-# 🧹 Supprime le dossier temporaire après un délai
+# ⏳ Nettoyage automatique
 async def supprimer_fichier_apres_delai(path, delay=300):
     await asyncio.sleep(delay)
     if os.path.exists(path):
