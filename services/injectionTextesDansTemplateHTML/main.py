@@ -63,13 +63,15 @@ async def injecter_textes_depuis_bdd(request: Request):
             raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
 
 
-        # 🧹 Supprime uniquement les balises <span>, <br> ET le texte brut (NavigableString) entre deux balises avec id et class
+         # 🔄 Récupère toutes les balises avec un ID
         balises_cibles = soup.find_all(lambda tag: tag.has_attr("id"))
         
         for i in range(len(balises_cibles) - 1):
             debut = balises_cibles[i]
             fin = balises_cibles[i + 1]
+            id_val = debut["id"]
         
+            # 🔁 Nettoie tout ce qui se trouve entre deux balises ID
             current = debut.next_sibling
             while current and current != fin:
                 next_node = current.next_sibling
@@ -77,18 +79,84 @@ async def injecter_textes_depuis_bdd(request: Request):
                     current.extract()
                 current = next_node
         
+            # 🧹 Vide complètement la balise de départ
             while debut.contents:
                 debut.contents[0].extract()
         
-            print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
+            # 📥 Injection du texte (si disponible)
+            try:
+                table, colonne, ligne_cle = id_val.split("_", 2)
         
-        # ✅ Ne pas oublier la dernière balise
+                colonne = colonne.replace("Genre", genre)
+                ligne_cle = (ligne_cle
+                                .replace("CdVX", f"CdV{nb_cdv}")
+                                .replace("ExpY", f"Exp{nb_exp}")
+                                .replace("ReaZ", f"Rea{nb_rea}")
+                                .replace("AmeQ", f"Ame{nb_ame}"))
+        
+                texte = get_cell_value(conn, table, colonne, ligne_cle)
+        
+                if texte is not None:
+                    lignes = texte.split("\n")
+                    for i, ligne in enumerate(lignes):
+                        if i > 0:
+                            debut.append(soup.new_tag("br"))
+                        if ligne.strip() == "":
+                            debut.append(soup.new_tag("br"))
+                        else:
+                            debut.append(NavigableString(ligne))
+                    print(f"✅ Injection réussie pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+                else:
+                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → table={table}, colonne={colonne}, ligne={ligne_cle}", flush=True)
+        
+            except Exception as e:
+                print(f"⚠️ Problème avec l’ID {id_val} : {e}", flush=True)
+                continue
+        
+        # 🔁 Et pour la toute dernière balise de la page :
         if balises_cibles:
             dernier = balises_cibles[-1]
+            id_val = dernier["id"]
+            
             while dernier.contents:
                 dernier.contents[0].extract()
-            print(f"🧹 Zone vidée pour la dernière balise ID={dernier['id']}", flush=True)
+        
+            try:
+                table, colonne, ligne_cle = id_val.split("_", 2)
+        
+                colonne = colonne.replace("Genre", genre)
+                ligne_cle = (ligne_cle
+                                .replace("CdVX", f"CdV{nb_cdv}")
+                                .replace("ExpY", f"Exp{nb_exp}")
+                                .replace("ReaZ", f"Rea{nb_rea}")
+                                .replace("AmeQ", f"Ame{nb_ame}"))
+        
+                texte = get_cell_value(conn, table, colonne, ligne_cle)
+        
+                if texte is not None:
+                    lignes = texte.split("\n")
+                    for i, ligne in enumerate(lignes):
+                        if i > 0:
+                            dernier.append(soup.new_tag("br"))
+                        if ligne.strip() == "":
+                            dernier.append(soup.new_tag("br"))
+                        else:
+                            dernier.append(NavigableString(ligne))
+                    print(f"✅ Injection réussie pour ID={id_val} (dernière balise)", flush=True)
+                else:
+                    print(f"⚠️ Aucun contenu trouvé pour ID={id_val} (dernière balise)", flush=True)
+        
+            except Exception as e:
+                print(f"⚠️ Problème avec la dernière balise ID={id_val} : {e}", flush=True)
+        
+        # ✅ Fermer la connexion PostgreSQL proprement
+        conn.close()
 
+
+
+
+
+        
         fichier_id = str(uuid.uuid4())
         base_url = str(request.base_url).rstrip("/")
         url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
