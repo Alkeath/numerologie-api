@@ -70,34 +70,22 @@ async def injecter_textes_depuis_bdd(request: Request):
 
         conn = get_db_connection()
 
-        # 🧹 Efface les contenus entre chaque paire de balises avec id+class
-        balises_cibles = soup.find_all(lambda tag: tag.has_attr("id"))
+        # Parcourir toutes les balises avec un id
+        for balise in soup.find_all(lambda tag: tag.has_attr("id")):
+            enfants_a_supprimer = []
         
-        for i in range(len(balises_cibles) - 1):
-            debut = balises_cibles[i]
-            fin = balises_cibles[i + 1]
+            for enfant in balise.contents:
+                if isinstance(enfant, NavigableString):
+                    enfants_a_supprimer.append(enfant)
+                elif isinstance(enfant, Tag) and enfant.name == "br":
+                    enfants_a_supprimer.append(enfant)
+            
+            for elem in enfants_a_supprimer:
+                elem.extract()
         
-            current = debut.next_sibling
-            while current and current != fin:
-                next_node = current.next_sibling
-                if getattr(current, "name", None) in ["span", "br"] or isinstance(current, NavigableString):
-                    current.extract()
-                current = next_node
+            print(f"🧹 Texte et <br/> effacés pour ID={balise['id']}", flush=True)
         
-            while debut.contents:
-                debut.contents[0].extract()
-        
-            print(f"🧹 Zone vidée entre ID={debut['id']} et ID={fin['id']}", flush=True)
-        
-        # ✅ Ne pas oublier la dernière balise
-        if balises_cibles:
-            dernier = balises_cibles[-1]
-            while dernier.contents:
-                dernier.contents[0].extract()
-            print(f"🧹 Zone vidée pour la dernière balise ID={dernier['id']}", flush=True)
-
-
-        # 🖋️ Injection des textes dans chaque balise avec id
+                # 🖋️ Injection des textes dans chaque balise avec id
 
 
 
