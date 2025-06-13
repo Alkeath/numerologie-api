@@ -1,25 +1,24 @@
-from bs4 import BeautifulSoup
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-import os
-import uuid
+@app.post("/injectionTextesDansTemplateHTML")
+async def injection_textes(request: Request, data: dict):
+    from bs4 import BeautifulSoup
+    import uuid
+    import os
 
-app = FastAPI()
+    TEMPLATE_HTML_PATH = "app/templates/template_temporaire1/index.html"
+    DOSSIER_HTML_TEMP = "app/templates/html_temp"
+    
+    # Chargement du template HTML
+    try:
+        with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
+            soup = BeautifulSoup(f, "html.parser")
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Template HTML non trouvé.")
 
-TEMPLATE_HTML_PATH = "app/templates/template_temporaire1/index.html"
-DOSSIER_HTML_TEMP = "app/templates/html_temp"
-
-@app.post("/vider_zones_id")
-async def vider_zones_id(request: Request):
-    # Lecture du template
-    with open(TEMPLATE_HTML_PATH, "r", encoding="utf-8") as f:
-        soup = BeautifulSoup(f, "html.parser")
-
-    # Vide chaque zone avec un ID
+    # Suppression du contenu dans les zones identifiées par un ID
     for el in soup.find_all(attrs={"id": True}):
         el.clear()
 
-    # Création fichier temporaire
+    # Création du dossier temporaire
     fichier_id = str(uuid.uuid4())
     dossier_temp = os.path.join(DOSSIER_HTML_TEMP, fichier_id)
     os.makedirs(dossier_temp, exist_ok=True)
@@ -28,7 +27,10 @@ async def vider_zones_id(request: Request):
     with open(chemin_fichier, "w", encoding="utf-8") as f:
         f.write(str(soup))
 
+    # Construction de l'URL temporaire
     base_url = str(request.base_url).rstrip("/")
     url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
+
+    print(f"🧹 HTML vidé généré : {url_html}", flush=True)
 
     return {"url_html": url_html}
