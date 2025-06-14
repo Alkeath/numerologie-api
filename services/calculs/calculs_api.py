@@ -635,22 +635,31 @@ def etape_2_recalculs_final_et_affectations(data):
  #Renvoie l'URL du HTML généré (ou chaîne vide en cas d’erreur).
  
 
-def etape_3_injection_textes_dans_html(data: dict) -> str:
+def etape_3_injection_textes_dans_html(data: dict) -> dict:
     try:
         injection_url = os.getenv("INJECTION_HTML_URL")
         if not injection_url:
             raise ValueError("INJECTION_HTML_URL n’est pas définie dans les variables d’environnement.")
         
-        print("🔁 Appel à l'API d'injection HTML...")
+        print("🔁 [calculs_api.py] Appel à l'API d'injection HTML...")
         response = requests.post(injection_url, json=data)
         response.raise_for_status()
-        
+
         url_html = response.json().get("url_html", "")
-        pdf_path = etape_4_generation_pdf_depuis_html(url_html)
-        return pdf_path
+        print("📄 [calculs_api.py] HTML généré :", url_html)
+
+        print("📦 [calculs_api.py] Étape 4 : Génération du PDF depuis le HTML")
+        chemin_pdf = etape_4_generation_pdf_depuis_html(url_html)
+
+        return {
+            "url_html": url_html,
+            "chemin_pdf": chemin_pdf
+        }
+
     except Exception as e:
-        print(f"❌ Échec de l’injection des textes : {e}")
-        return ""
+        print(f"❌ [calculs_api.py] Échec de l’injection des textes ou génération PDF : {e}")
+        return {"erreur": str(e)}
+
 
 
 
@@ -705,14 +714,20 @@ def generer_rapport_depuis_donnees(data: dict):
         url_pdf = etape_4_generation_pdf_depuis_html(url_html)
 
         if not url_pdf:
-            raise ValueError("❌ La génération du PDF a échoué. Aucun lien retourné.")
+            raise ValueError("❌ Ladef generer_rapport_depuis_donnees(data: dict) -> dict:
+    try:
+        print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
+        resultats = etape_3_injection_textes_dans_html(data)
 
-        print("✅ [calculs_api.py] PDF généré avec succès :", url_pdf)
-        return url_pdf  # 🔁 ✅ retour explicite
+        if "erreur" in resultats or not resultats.get("chemin_pdf"):
+            raise ValueError("❌ L'injection ou la génération du PDF a échoué.")
+
+        return resultats  # ✅ Renvoie un dict contenant chemin_pdf et url_html
 
     except Exception as e:
         print("❌ [calculs_api.py] Erreur dans generer_rapport_depuis_donnees :", str(e))
         return {"erreur": str(e)}
+
 
 
 
