@@ -75,7 +75,7 @@ def retraitement_variables(choix: ChoixUtilisateur):
 
 @router.post("/etape2")
 async def appel_etape_2(choix: ChoixUtilisateur):
-    print("📩 Données reçues :", data.dict(), flush=True)
+    print("📩 Données reçues :", choix.dict(), flush=True)
     raw = await request.body()
     print("📦 Corps brut reçu :", raw.decode())
     print("📨 Payload Pydantic :", payload.dict())
