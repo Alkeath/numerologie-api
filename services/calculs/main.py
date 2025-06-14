@@ -27,18 +27,52 @@ app.add_middleware(
 app.include_router(calculs_router)
 
 # ✅ Route POST pour l'étape 1 des calculs
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+import traceback
+
 @app.post("/calculs-formulaire")
 async def calculs_formulaire(request: Request):
-    print("✅ Calculs/main : étape 1, Requête reçue")
-    donnees = await request.json()
-    print("📥 Données :", donnees)
-    donnees = traitement_etape_1(donnees)
-    print("Fin de la route /calculs-formulaire : on s'apprête à renvoyer les données")
-    data = nettoyer_donnees(data)
-    return {
-        "message": "Étape 1 terminée",
-        "donnees": donnees
-    }
+    try:
+        print("📥 [main.py – service calculs] Requête reçue dans /calculs-formulaire")
+        donnees = await request.json()
+        print("📥 [main.py – service calculs] Données reçues :", donnees)
+
+        data = traitement_etape_1(donnees)
+        print("✅ [main.py – service calculs] traitement_etape_1 terminé")
+
+        if data.get("Presence11") == "non" and data.get("Presence22") == "non" and not data.get("PrenomsSecondaires_Formulaire", "").strip():
+            print("🚫 [main.py – service calculs] Aucun maître et aucun 2e prénom : génération directe du rapport")
+            lien_pdf = generer_rapport_depuis_donnees(data)
+            if isinstance(lien_pdf, dict):
+                print(f"❌ [main.py – service calculs] Erreur dans la génération du PDF : {lien_pdf.get('erreur')}")
+                data["url_pdf"] = lien_pdf.get("erreur", "Erreur_pdf")
+            else:
+                print(f"📄 [main.py – service calculs] PDF généré avec succès : {lien_pdf}")
+                data["url_pdf"] = lien_pdf
+
+        print("🧹 [main.py – service calculs] Nettoyage des données avant envoi au frontend")
+        data_sain = jsonable_encoder(data)
+
+        print("✅ [main.py – service calculs] Fin de la route /calculs-formulaire : on s'apprête à renvoyer les données")
+        return JSONResponse(content={
+            "message": "Étape 1 terminée",
+            "donnees": data_sain
+        })
+
+    except Exception as e:
+        print("❌ [main.py – service calculs] Exception non capturée :", str(e))
+        traceback.print_exc()
+        return JSONResponse(
+            content={
+                "message": "Erreur serveur",
+                "erreur": str(e),
+                "trace": traceback.format_exc()
+            },
+            status_code=500
+        )
+
 
 # ✅ Route POST pour l’enchaînement injection HTML + génération PDF (étapes 3 + 4)
 @app.post("/genererRapport")
