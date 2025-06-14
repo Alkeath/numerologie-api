@@ -665,6 +665,26 @@ def traitement_etape_1(data):
     etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     return data
 
-def traitement_etape_2(donnees):
-    
-    return donnees
+
+def generer_rapport_depuis_donnees(data: dict):
+    try:
+        print("🧩 Étape 3 : Injection des textes dans le HTML")
+        url_html = etape_3_injection_textes_dans_html(data)
+
+        if not url_html:
+            raise ValueError("❌ L'injection des textes a échoué. Aucun URL HTML retourné.")
+
+        print("📄 HTML généré :", url_html)
+
+        print("📦 Étape 4 : Génération du PDF depuis le HTML")
+        return etape_4_generation_pdf_depuis_html(url_html)
+
+    except Exception as e:
+        print("❌ Erreur dans generer_rapport_depuis_donnees :", str(e))
+        return {"erreur": str(e)}def generer_rapport_depuis_donnees(data: dict):
+    print("🧩 Étape 3 : Injection des textes dans le HTML")
+    url_html = etape_3_injection_textes_dans_html(data)
+
+    print("🧩 Étape 4 : Appel au service de génération PDF")
+    return etape_4_generation_pdf_depuis_html(url_html) 
+
