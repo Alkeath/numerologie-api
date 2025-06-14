@@ -84,7 +84,11 @@ async def appel_etape_2(choix: ChoixUtilisateur):
     etape_2_recalculs_final_et_affectations(donnees)
     return {"donnees": donnees}
 
-
+@app.post("/genererRapport")
+async def generer_rapport(request: Request):
+    print("🧠 Requête reçue pour génération complète du rapport")
+    data = await request.json()
+    return generer_rapport_depuis_donnees(data)
 
 
 ######## FONCTIONS UTILITAIRES #########
