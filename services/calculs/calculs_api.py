@@ -702,7 +702,7 @@ def traitement_etape_1(data):
 
 def generer_rapport_depuis_donnees(data: dict):
     try:
-        print("🧩 [calculs_api.py] Étape 3 : Injection des textes dans le HTML")
+        print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
         url_html = etape_3_injection_textes_dans_html(data)
 
         if not url_html:
@@ -711,20 +711,20 @@ def generer_rapport_depuis_donnees(data: dict):
         print("📄 [calculs_api.py] HTML généré :", url_html)
 
         print("📦 [calculs_api.py] Étape 4 : Génération du PDF depuis le HTML")
-        url_pdf = etape_4_generation_pdf_depuis_html(url_html)
+        chemin_pdf = etape_4_generation_pdf_depuis_html(url_html)
 
-    try:
-        print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
-        resultats = etape_3_injection_textes_dans_html(data)
+        if not chemin_pdf:
+            raise ValueError("❌ La génération du PDF a échoué. Aucun chemin PDF retourné.")
 
-        if "erreur" in resultats or not resultats.get("chemin_pdf"):
-            raise ValueError("❌ L'injection ou la génération du PDF a échoué.")
-
-        return resultats  # ✅ Renvoie un dict contenant chemin_pdf et url_html
+        return {
+            "chemin_pdf": chemin_pdf,
+            "url_html": url_html
+        }
 
     except Exception as e:
         print("❌ [calculs_api.py] Erreur dans generer_rapport_depuis_donnees :", str(e))
         return {"erreur": str(e)}
+
 
 
 
