@@ -33,7 +33,7 @@ app.include_router(calculs_router)
 # ✅ Route POST pour l'étape 1 des calculs
 @app.post("/calculs-formulaire")
 async def calculs_formulaire(request: Request):
-    print("✅ Requête reçue")
+    print("✅ Calculs/main : étape 1, Requête reçue")
     donnees = await request.json()
     print("📥 Données :", donnees)
     donnees = traitement_etape_1(donnees)
@@ -45,7 +45,7 @@ async def calculs_formulaire(request: Request):
 # ✅ Route POST pour l’enchaînement injection HTML + génération PDF (étapes 3 + 4)
 @app.post("/genererRapport")
 async def generer_rapport(request: Request):
-    print("🧠 Requête reçue pour génération complète du rapport")
+    print("🧠 Calculs/main : Requête reçue pour génération complète du rapport")
     data = await request.json()
     return generer_rapport_depuis_donnees(data)
 
