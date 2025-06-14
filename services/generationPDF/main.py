@@ -26,6 +26,8 @@ class PDFRequest(BaseModel):
 async def generation_pdf_endpoint(payload: PDFRequest):
     html_url = payload.html_url
     print(f"📥 URL reçue : {html_url}")
+    print("🧾 Payload brut reçu :", payload)
+    print("🔗 URL extraite :", payload.html_url)
 
     try:
         pdf_path = await convert_html_to_pdf(html_url)
