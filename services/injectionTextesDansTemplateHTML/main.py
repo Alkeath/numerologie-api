@@ -11,11 +11,15 @@ app = FastAPI()
 # 🔓 Middleware CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://test-recup.vercel.app",
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["*"],  # ou ["POST", "OPTIONS"]
     allow_headers=["*"],
 )
+
 
 # 📁 Répertoire temporaire pour les fichiers HTML générés
 TEMP_HTML_DIR = "html_genere"
