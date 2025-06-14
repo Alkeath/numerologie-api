@@ -681,10 +681,6 @@ def generer_rapport_depuis_donnees(data: dict):
 
     except Exception as e:
         print("❌ Erreur dans generer_rapport_depuis_donnees :", str(e))
-        return {"erreur": str(e)}def generer_rapport_depuis_donnees(data: dict):
-    print("🧩 Étape 3 : Injection des textes dans le HTML")
-    url_html = etape_3_injection_textes_dans_html(data)
+        return {"erreur": str(e)}
 
-    print("🧩 Étape 4 : Appel au service de génération PDF")
-    return etape_4_generation_pdf_depuis_html(url_html) 
 
