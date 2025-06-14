@@ -34,45 +34,38 @@ import traceback
 
 @app.post("/calculs-formulaire")
 async def calculs_formulaire(request: Request):
-    try:
-        print("📥 [main.py – service calculs] Requête reçue dans /calculs-formulaire")
-        donnees = await request.json()
-        print("📥 [main.py – service calculs] Données reçues :", donnees)
+    print("✅ [main.py – service calculs] Requête reçue")
+    data = await request.json()
 
-        data = traitement_etape_1(donnees)
+    try:
+        print("🔄 [main.py – service calculs] Appel à traitement_etape_1...")
+        data = traitement_etape_1(data)
         print("✅ [main.py – service calculs] traitement_etape_1 terminé")
 
-        if data.get("Presence11") == "non" and data.get("Presence22") == "non" and not data.get("PrenomsSecondaires_Formulaire", "").strip():
+        # 🚫 Si aucun maître ni deuxième prénom → génération directe
+        if data.get("Presence11") != "oui" and data.get("Presence22") != "oui" and not data.get("PrenomsSecondaires"):
             print("🚫 [main.py – service calculs] Aucun maître et aucun 2e prénom : génération directe du rapport")
-            lien_pdf = generer_rapport_depuis_donnees(data)
-            
-            if isinstance(lien_pdf, str):
-                data["url_pdf"] = lien_pdf
-            else:
-                print("❌ [main.py – service calculs] PDF non généré correctement")
-                data["url_pdf"] = "Erreur_pdf"
+            resultats_pdf = generer_rapport_depuis_donnees(data)
 
+            data["chemin_pdf"] = resultats_pdf.get("chemin_pdf", "")
+            data["url_html"] = resultats_pdf.get("url_html", "")
+            
+            if "erreur" in resultats_pdf:
+                print("❌ [main.py – service calculs] PDF non généré correctement")
+        else:
+            print("🕓 [main.py – service calculs] Modales attendues : pas de génération directe")
 
         print("🧹 [main.py – service calculs] Nettoyage des données avant envoi au frontend")
-        data_sain = jsonable_encoder(data)
-
-        print("✅ [main.py – service calculs] Fin de la route /calculs-formulaire : on s'apprête à renvoyer les données")
-        return JSONResponse(content={
+        return {
             "message": "Étape 1 terminée",
-            "donnees": data_sain
-        })
+            "donnees": data
+        }
 
     except Exception as e:
-        print("❌ [main.py – service calculs] Exception non capturée :", str(e))
-        traceback.print_exc()
-        return JSONResponse(
-            content={
-                "message": "Erreur serveur",
-                "erreur": str(e),
-                "trace": traceback.format_exc()
-            },
-            status_code=500
-        )
+        print(f"❌ [main.py – service calculs] Exception non capturée : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 # ✅ Route POST pour l’enchaînement injection HTML + génération PDF (étapes 3 + 4)
