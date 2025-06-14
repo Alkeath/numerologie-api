@@ -23,6 +23,8 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+print("🌐 Origines CORS autorisées :", origines_autorisees)
+
 # ✅ Inclusion des routes API de calcul
 app.include_router(calculs_router)
 
