@@ -693,19 +693,26 @@ def traitement_etape_1(data):
 
 def generer_rapport_depuis_donnees(data: dict):
     try:
-        print("🧩 Étape 3 : Injection des textes dans le HTML")
+        print("🧩 [calculs_api.py] Étape 3 : Injection des textes dans le HTML")
         url_html = etape_3_injection_textes_dans_html(data)
 
         if not url_html:
             raise ValueError("❌ L'injection des textes a échoué. Aucun URL HTML retourné.")
 
-        print("📄 HTML généré :", url_html)
+        print("📄 [calculs_api.py] HTML généré :", url_html)
 
-        print("📦 Étape 4 : Génération du PDF depuis le HTML")
-        return etape_4_generation_pdf_depuis_html(url_html)
+        print("📦 [calculs_api.py] Étape 4 : Génération du PDF depuis le HTML")
+        url_pdf = etape_4_generation_pdf_depuis_html(url_html)
+
+        if not url_pdf:
+            raise ValueError("❌ La génération du PDF a échoué. Aucun lien retourné.")
+
+        print("✅ [calculs_api.py] PDF généré avec succès :", url_pdf)
+        return url_pdf  # 🔁 ✅ retour explicite
 
     except Exception as e:
-        print("❌ Erreur dans generer_rapport_depuis_donnees :", str(e))
+        print("❌ [calculs_api.py] Erreur dans generer_rapport_depuis_donnees :", str(e))
         return {"erreur": str(e)}
+
 
 
