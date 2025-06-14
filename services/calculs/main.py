@@ -34,6 +34,7 @@ async def calculs_formulaire(request: Request):
     print("📥 Données :", donnees)
     donnees = traitement_etape_1(donnees)
     print("Fin de la route /calculs-formulaire : on s'apprête à renvoyer les données")
+    data = nettoyer_donnees(data)
     return {
         "message": "Étape 1 terminée",
         "donnees": donnees
@@ -56,3 +57,18 @@ if __name__ == "__main__":
 
     # 🚀 Démarrage de l’application FastAPI avec Uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=port)
+
+
+from fastapi.encoders import jsonable_encoder
+
+# ✅ Nettoyage des champs non sérialisables
+def nettoyer_donnees(data):
+    data_saine = {}
+    for k, v in data.items():
+        try:
+            jsonable_encoder(v)
+            data_saine[k] = v
+        except Exception as e:
+            print(f"⚠️ Clé '{k}' supprimée du retour (non sérialisable, type {type(v)}): {e}")
+    return data_saine
+
