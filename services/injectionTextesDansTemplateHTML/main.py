@@ -26,7 +26,10 @@ app.mount("/html_temp", StaticFiles(directory=TEMP_HTML_DIR, html=True), name="h
 @app.post("/injectionTextesDansTemplateHTML")
 async def injecter_textes_depuis_bdd(request: Request):
     try:
-        result = await traiter_injection(request)
-        return JSONResponse(content=result)
+        nom_fichier_html = await traiter_injection(request)
+
+        html_url = f"https://injectionhtml-production.up.railway.app/html_temp/{nom_fichier_html}"
+        return JSONResponse(content={"html_url": html_url})
+    
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
