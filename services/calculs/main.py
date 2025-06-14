@@ -7,7 +7,7 @@ from calculs_api import traitement_etape_1, generer_rapport_depuis_donnees
 app = FastAPI()
 
 # ✅ Liste exacte des origines autorisées
-allow_origins = [
+origines_autorisees = [
     "https://test-recup.vercel.app",
     "https://www.test-recup.vercel.app",
     "http://localhost:3000",
@@ -17,10 +17,10 @@ allow_origins = [
 # ✅ Middleware CORS bien configuré
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=origines_autorisees,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 # ✅ Inclusion des routes API de calcul
