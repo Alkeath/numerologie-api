@@ -502,13 +502,10 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 
         import inspect
       
+        print("\n--- SCAN AVEC TYPE COMPLET ---")
         for k, v in data.items():
-            if inspect.iscoroutine(v):
-                print(f"⛔ Clé '{k}' contient une coroutine.")
-            elif inspect.isasyncgen(v):
-                print(f"⛔ Clé '{k}' contient un async_generator.")
-            elif not isinstance(v, (str, int, float, bool, dict, list, type(None))):
-                print(f"⚠️ Clé '{k}' contient un type spécial : {type(v)}")
+            print(f"{k} → type: {type(v)}")
+
 
 
 
