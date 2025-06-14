@@ -93,6 +93,17 @@ async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
         print("📡 Point de vérification router /etape 2 avant appel à la fonction")
         etape_2_recalculs_final_et_affectations(donnees)
 
+        import pprint
+        print("🧪 Données finales à retourner (brutes) :")
+        pprint.pprint(donnees)
+        try:
+            jsonable_encoder(donnees)
+            print("✅ Encodage JSON réussi")
+        except Exception as e:
+            print("❌ Erreur d'encodage JSON :", str(e))
+            import traceback
+            traceback.print_exc()
+           
         print("✅ Fin traitement /etape2, envoi réponse JSON")
         return JSONResponse(content={"donnees": jsonable_encoder(donnees)})
 
