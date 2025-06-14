@@ -75,6 +75,10 @@ def retraitement_variables(choix: ChoixUtilisateur):
 
 @router.post("/etape2")
 async def appel_etape_2(choix: ChoixUtilisateur):
+    print("📩 Données reçues :", data.dict(), flush=True)
+    raw = await request.body()
+    print("📦 Corps brut reçu :", raw.decode())
+    print("📨 Payload Pydantic :", payload.dict())
     email_formulaire = choix.Email_Formulaire
     if email_formulaire not in memoire_utilisateurs:
         raise HTTPException(status_code=400, detail="Email_Formulaire inconnu ou session expirée")
