@@ -74,7 +74,7 @@ def retraitement_variables(choix: ChoixUtilisateur):
     }
 
 @router.post("/etape2")
-async def appel_etape_2(choix: ChoixUtilisateur):
+async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
     print("📩 Données reçues :", choix.dict(), flush=True)
     raw = await request.body()
     print("📦 Corps brut reçu :", raw.decode())
