@@ -78,7 +78,7 @@ async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
     print("📩 Données reçues :", choix.dict(), flush=True)
     raw = await request.body()
     print("📦 Corps brut reçu :", raw.decode())
-    print("📨 Payload Pydantic :", payload.dict())
+    print("📨 Payload Pydantic :", choix.dict())
     email_formulaire = choix.Email_Formulaire
     if email_formulaire not in memoire_utilisateurs:
         raise HTTPException(status_code=400, detail="Email_Formulaire inconnu ou session expirée")
