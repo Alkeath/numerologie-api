@@ -45,12 +45,13 @@ async def calculs_formulaire(request: Request):
         if data.get("Presence11") == "non" and data.get("Presence22") == "non" and not data.get("PrenomsSecondaires_Formulaire", "").strip():
             print("🚫 [main.py – service calculs] Aucun maître et aucun 2e prénom : génération directe du rapport")
             lien_pdf = generer_rapport_depuis_donnees(data)
-            if isinstance(lien_pdf, dict):
-                print(f"❌ [main.py – service calculs] Erreur dans la génération du PDF : {lien_pdf.get('erreur')}")
-                data["url_pdf"] = lien_pdf.get("erreur", "Erreur_pdf")
-            else:
-                print(f"📄 [main.py – service calculs] PDF généré avec succès : {lien_pdf}")
+            
+            if isinstance(lien_pdf, str):
                 data["url_pdf"] = lien_pdf
+            else:
+                print("❌ [main.py – service calculs] PDF non généré correctement")
+                data["url_pdf"] = "Erreur_pdf"
+
 
         print("🧹 [main.py – service calculs] Nettoyage des données avant envoi au frontend")
         data_sain = jsonable_encoder(data)
