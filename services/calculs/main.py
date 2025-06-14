@@ -37,6 +37,7 @@ async def calculs_formulaire(request: Request):
     donnees = await request.json()
     print("📥 Données :", donnees)
     donnees = traitement_etape_1(donnees)
+    print("Fin de la route /calculs-formulaire : on s'apprête à renvoyer les données")
     return {
         "message": "Étape 1 terminée",
         "donnees": donnees
