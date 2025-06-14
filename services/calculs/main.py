@@ -14,8 +14,6 @@ origines_autorisees = [
     "http://localhost"
 ]
 
-print("🌐 Origines CORS autorisées dans ce service :", origines_autorisees, flush=True)
-
 # ✅ Middleware CORS bien configuré
 app.add_middleware(
     CORSMiddleware,
@@ -24,8 +22,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-print("🌐 Origines CORS autorisées :", origines_autorisees)
 
 # ✅ Inclusion des routes API de calcul
 app.include_router(calculs_router)
