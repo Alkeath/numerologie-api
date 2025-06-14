@@ -713,8 +713,6 @@ def generer_rapport_depuis_donnees(data: dict):
         print("📦 [calculs_api.py] Étape 4 : Génération du PDF depuis le HTML")
         url_pdf = etape_4_generation_pdf_depuis_html(url_html)
 
-        if not url_pdf:
-            raise ValueError("❌ Erreur dans generer_rapport_depuis_donnees")
     try:
         print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
         resultats = etape_3_injection_textes_dans_html(data)
