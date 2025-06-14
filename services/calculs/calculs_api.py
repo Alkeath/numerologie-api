@@ -97,6 +97,14 @@ async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
         import pprint
         print("🧪 Données finales à retourner (brutes) :")
         pprint.pprint(donnees)
+
+        # 🔧 Vérification spéciale : nettoyage des objets non sérialisables (comme StreamingResponse)
+        if "url_html" in donnees and isinstance(donnees["url_html"], dict):
+            if not isinstance(donnees["url_html"].get("url_html"), str):
+                donnees["url_html"]["url_html"] = str(donnees["url_html"].get("url_html", ""))
+            if not isinstance(donnees["url_html"].get("chemin_pdf"), str):
+                donnees["url_html"]["chemin_pdf"] = str(donnees["url_html"].get("chemin_pdf", ""))
+
         try:
             jsonable_encoder(donnees)
             print("✅ Encodage JSON réussi")
@@ -104,15 +112,10 @@ async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
             print("❌ Erreur d'encodage JSON :", str(e))
             import traceback
             traceback.print_exc()
-           
-        print("✅ Fin traitement /etape2, envoi réponse JSON")
-        donnees_clean = {
-            k: v for k, v in donnees.items()
-            if isinstance(v, (str, int, float, bool, list, dict, type(None)))
-        }
-        return JSONResponse(content={"donnees": donnees_clean})
 
-   
+        print("✅ Fin traitement /etape2, envoi réponse JSON")
+        return JSONResponse(content={"donnees": jsonable_encoder(donnees)})
+
     except Exception as e:
         import traceback
         print("🔥 Exception dans /etape2 :", str(e))
