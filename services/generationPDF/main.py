@@ -16,13 +16,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class PDFRequest(BaseModel):
     html_url: str  # URL complète du fichier HTML injecté (ex: http://.../fichier.html)
 
+
+
 @app.post("/generationPDF")
-async def generation_pdf(req: PDFRequest):
+async def generation_pdf_endpoint(payload: HTMLRequest):
+    html_url = payload.html_url
+    print(f"📥 URL reçue : {html_url}")
+
     try:
-        pdf_path = await convert_html_to_pdf(req.html_url)
-        return FileResponse(pdf_path, media_type='application/pdf', filename=os.path.basename(pdf_path))
+        pdf_path = await convert_html_to_pdf(html_url)
+        return FileResponse(pdf_path, media_type="application/pdf", filename="rapport.pdf")
     except Exception as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+        print(f"❌ Erreur lors de la génération du PDF : {e}")
+        return JSONResponse(status_code=500, content={"error": "Erreur lors de la génération du PDF"})
