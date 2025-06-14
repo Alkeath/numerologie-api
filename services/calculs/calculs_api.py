@@ -498,14 +498,9 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         ]:
             data[cle] = "NonApplicable"
 
+        print("✅ Fin de traitement_etape_1 atteinte avec succès")
+       
         etape_2_recalculs_final_et_affectations(data)
-
-        import inspect
-      
-        print("\n--- SCAN AVEC TYPE COMPLET ---")
-        for k, v in data.items():
-            print(f"{k} → type: {type(v)}")
-
 
 
 
