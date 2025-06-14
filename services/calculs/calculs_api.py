@@ -30,6 +30,7 @@ Ce découpage assure modularité, scalabilité et clarté du traitement, tout en
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from datetime import datetime, date
 import unicodedata
@@ -105,8 +106,13 @@ async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
             traceback.print_exc()
            
         print("✅ Fin traitement /etape2, envoi réponse JSON")
-        return JSONResponse(content={"donnees": jsonable_encoder(donnees)})
+        donnees_clean = {
+            k: v for k, v in donnees.items()
+            if isinstance(v, (str, int, float, bool, list, dict, type(None)))
+        }
+        return JSONResponse(content={"donnees": donnees_clean})
 
+   
     except Exception as e:
         import traceback
         print("🔥 Exception dans /etape2 :", str(e))
