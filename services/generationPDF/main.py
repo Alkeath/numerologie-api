@@ -19,15 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
 class PDFRequest(BaseModel):
     html_url: str  # URL complète du fichier HTML injecté (ex: http://.../fichier.html)
 
-
-
 @app.post("/generationPDF")
-async def generation_pdf_endpoint(payload: HTMLRequest):
+async def generation_pdf_endpoint(payload: PDFRequest):
     html_url = payload.html_url
     print(f"📥 URL reçue : {html_url}")
 
