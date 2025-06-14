@@ -29,7 +29,7 @@ Ce découpage assure modularité, scalabilité et clarté du traitement, tout en
 
 
 from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 from datetime import datetime, date
 import unicodedata
@@ -75,18 +75,32 @@ def retraitement_variables(choix: ChoixUtilisateur):
 
 @router.post("/etape2")
 async def appel_etape_2(choix: ChoixUtilisateur, request: Request):
-    print("📩 Données reçues :", choix.dict(), flush=True)
-    raw = await request.body()
-    print("📦 Corps brut reçu :", raw.decode())
-    print("📨 Payload Pydantic :", choix.dict())
-    email_formulaire = choix.Email_Formulaire
-    if email_formulaire not in memoire_utilisateurs:
-        raise HTTPException(status_code=400, detail="Email_Formulaire inconnu ou session expirée")
-    donnees = memoire_utilisateurs[email_formulaire].copy()
-    donnees.update(choix.dict())
-    print("📡 Point de vérification router /etape 2 avant appel à la fonction")
-    etape_2_recalculs_final_et_affectations(donnees)
-    return {"donnees": jsonable_encoder(donnees)}
+    try:
+        print("📩 Données reçues :", choix.dict(), flush=True)
+
+        raw = await request.body()
+        print("📦 Corps brut reçu :", raw.decode())
+
+        print("📨 Payload Pydantic :", choix.dict())
+
+        email_formulaire = choix.Email_Formulaire
+        if email_formulaire not in memoire_utilisateurs:
+            raise HTTPException(status_code=400, detail="Email_Formulaire inconnu ou session expirée")
+
+        donnees = memoire_utilisateurs[email_formulaire].copy()
+        donnees.update(choix.dict())
+
+        print("📡 Point de vérification router /etape 2 avant appel à la fonction")
+        etape_2_recalculs_final_et_affectations(donnees)
+
+        print("✅ Fin traitement /etape2, envoi réponse JSON")
+        return JSONResponse(content={"donnees": jsonable_encoder(donnees)})
+
+    except Exception as e:
+        import traceback
+        print("🔥 Exception dans /etape2 :", str(e))
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Erreur serveur dans /etape2")
 
 
 
