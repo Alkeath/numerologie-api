@@ -500,6 +500,15 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 
         etape_2_recalculs_final_et_affectations(data)
 
+        import inspect
+      
+        for k, v in data.items():
+            if inspect.iscoroutine(v):
+                print(f"⛔ Clé '{k}' contient une coroutine.")
+            elif inspect.isasyncgen(v):
+                print(f"⛔ Clé '{k}' contient un async_generator.")
+            elif not isinstance(v, (str, int, float, bool, dict, list, type(None))):
+                print(f"⚠️ Clé '{k}' contient un type spécial : {type(v)}")
 
 
 
