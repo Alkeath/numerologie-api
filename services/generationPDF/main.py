@@ -31,6 +31,8 @@ async def generation_pdf_endpoint(payload: PDFRequest):
 
     try:
         pdf_path = await convert_html_to_pdf(html_url)
+        print("✅ Chemin PDF généré :", pdf_path)
+        print("📁 Le fichier existe-t-il ?", os.path.exists(pdf_path))
         return FileResponse(pdf_path, media_type="application/pdf", filename="rapport.pdf")
     except Exception as e:
         print(f"❌ Erreur lors de la génération du PDF : {e}")
