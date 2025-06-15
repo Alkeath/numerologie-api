@@ -708,7 +708,7 @@ def traitement_etape_1(data):
     etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     return data
 
-
+"""
 def generer_rapport_depuis_donnees(data: dict):
     try:
         print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
@@ -733,7 +733,7 @@ def generer_rapport_depuis_donnees(data: dict):
     except Exception as e:
         print("❌ [calculs_api.py] Erreur dans generer_rapport_depuis_donnees :", str(e))
         return {"erreur": str(e)}
-
+"""
 
 
 
