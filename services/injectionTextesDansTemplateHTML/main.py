@@ -26,14 +26,13 @@ TEMP_HTML_DIR = "html_genere"
 os.makedirs(TEMP_HTML_DIR, exist_ok=True)
 app.mount("/html_temp", StaticFiles(directory=TEMP_HTML_DIR, html=True), name="html_temp")
 
+
 # 🎯 Route principale d'injection
 @app.post("/injectionTextesDansTemplateHTML")
 async def injecter_textes_depuis_bdd(request: Request):
     try:
-        nom_fichier_html = await traiter_injection(request)
-
-        html_url = f"https://injectionhtml-production.up.railway.app/html_temp/{nom_fichier_html}"
-        return JSONResponse(content={"html_url": html_url})
+        result = await traiter_injection(request)
+        return JSONResponse(content=result)  # <- 🔁 on renvoie tel quel le dict {"url_html": ...}
     
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
