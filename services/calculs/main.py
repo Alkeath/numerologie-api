@@ -38,29 +38,13 @@ async def calculs_formulaire(request: Request):
     data = await request.json()
 
     try:
+        # 🔄 Étape 1 : Calculs initiaux (totaux/réduits, avant activation)
         print("🔄 [main.py – service calculs] Appel à traitement_etape_1...")
         data = traitement_etape_1(data)
         print("✅ [main.py – service calculs] traitement_etape_1 terminé")
 
-        # 🚫 Si aucun maître ni deuxième prénom → génération directe
-        if data.get("Presence11") != "oui" and data.get("Presence22") != "oui" and not data.get("PrenomsSecondaires"):
-            print("🚫 [main.py – service calculs] Aucun maître et aucun 2e prénom : génération directe du rapport")
-            try:
-                resultats = etape_3_injection_textes_dans_html(data)
-        
-                if "erreur" in resultats or not resultats.get("chemin_pdf"):
-                    raise ValueError("❌ [main.py – service calculs - cas sans nb maître ni 2ème prenom] L'injection ou la génération du PDF a échoué.")
-                return resultats
-            except Exception as e:
-                print("❌ [main.py – service calculs - cas sans nb maître ni 2ème prenom] Erreur dans /genererRapport :", str(e))
-                import traceback
-                traceback.print_exc()
-                raise HTTPException(status_code=500, detail="Erreur serveur dans /genererRapport")
-        
-        else:
-            print("🕓 [main.py – service calculs] Modales attendues : pas de génération directe")
-
-        print("🧹 [main.py – service calculs] Nettoyage des données avant envoi au frontend")
+        # 🧹 Nettoyage des données avant renvoi au frontend
+        print("🧹 [main.py – service calculs] Données prêtes à être renvoyées au frontend")
         return {
             "message": "Étape 1 terminée",
             "donnees": data
@@ -68,7 +52,9 @@ async def calculs_formulaire(request: Request):
 
     except Exception as e:
         print(f"❌ [main.py – service calculs] Exception non capturée : {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Erreur serveur dans /calculs-formulaire")
 
 
 
