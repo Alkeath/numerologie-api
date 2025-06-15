@@ -1,6 +1,10 @@
+from bs4 import BeautifulSoup, NavigableString
+import uuid
+from config import TEMPLATE_HTML_PATH, TEMPLATE_DIR, TEMP_HTML_DIR
+import psycopg2
+import os
 import asyncio
 import shutil
-import os
 
 async def traiter_injection(request):
     try:
@@ -93,3 +97,24 @@ async def supprimer_fichier_apres_delai(path, delay=300):
     if os.path.exists(path):
         shutil.rmtree(path)
         print(f"🧹 Dossier temporaire supprimé : {path}")
+
+
+def get_db_connection():
+    return psycopg2.connect(
+        host=os.getenv("PGHOST"),
+        port=os.getenv("PGPORT"),
+        dbname=os.getenv("PGDATABASE"),
+        user=os.getenv("PGUSER"),
+        password=os.getenv("PGPASSWORD")
+    )
+
+def get_cell_value(conn, table, column, row_key):
+    with conn.cursor() as cur:
+        try:
+            query = f'SELECT "{column}" FROM "{table}" WHERE cle = %s'
+            cur.execute(query, (row_key,))
+            result = cur.fetchone()
+            return str(result[0]) if result and result[0] is not None else None
+        except Exception as e:
+            print(f"❌ Erreur SQL : {e} → table={table}, colonne={column}, ligne={row_key}", flush=True)
+            return None
