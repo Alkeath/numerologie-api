@@ -1,17 +1,20 @@
 from bs4 import BeautifulSoup, NavigableString
 import uuid
-from config import TEMPLATE_HTML_PATH, TEMPLATE_DIR, TEMP_HTML_DIR
 import psycopg2
 import os
 import asyncio
 import shutil
+
+# 📁 Déclarations des chemins
+TEMPLATE_HTML_PATH = "app/templates/template_temporaire1/index.html"
+TEMPLATE_DIR = "app/templates/template_temporaire1"
+TEMP_HTML_DIR = "html_genere"
 
 async def traiter_injection(request):
     try:
         data = await request.json()
     
         print("👌 [injection.py] FONCTION traiter_injection ACTUELLEMENT EXÉCUTÉE ", flush=True)
-    
         
         genre = data.get("Genre_Formulaire", "")
         nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
