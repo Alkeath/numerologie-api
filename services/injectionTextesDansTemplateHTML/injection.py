@@ -95,8 +95,9 @@ async def traiter_injection(request):
     
         asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=300))
     
-        print(f"\n✅ Injection terminée — URL finale : {url_html}\n", flush=True)
-    
+        print(f"\n📖🔱 Injection terminée — URL finale : {url_html}\n", flush=True)
+        print("🎉 Fin complète de l'injection et création du fichier HTML ✅", flush=True)
+        
         return {"url_html": url_html}
 
     except Exception as e:
