@@ -1,35 +1,3 @@
-from bs4 import BeautifulSoup, NavigableString
-import os
-import psycopg2
-import uuid
-import shutil
-import asyncio
-import traceback
-
-TEMPLATE_HTML_PATH = "templates/template_temporaire1/index.html"
-TEMPLATE_DIR = "templates/template_temporaire1"
-TEMP_HTML_DIR = "html_genere"
-
-def get_db_connection():
-    return psycopg2.connect(
-        host=os.getenv("PGHOST"),
-        port=os.getenv("PGPORT"),
-        dbname=os.getenv("PGDATABASE"),
-        user=os.getenv("PGUSER"),
-        password=os.getenv("PGPASSWORD")
-    )
-
-def get_cell_value(conn, table, column, row_key):
-    with conn.cursor() as cur:
-        try:
-            query = f'SELECT "{column}" FROM "{table}" WHERE cle = %s'
-            cur.execute(query, (row_key,))
-            result = cur.fetchone()
-            return str(result[0]) if result and result[0] is not None else None
-        except Exception as e:
-            print(f"❌ Erreur SQL : {e} → table={table}, colonne={column}, ligne={row_key}")
-            return None
-
 async def traiter_injection(request):
     data = await request.json()
 
@@ -46,17 +14,20 @@ async def traiter_injection(request):
 
     conn = get_db_connection()
 
+    # 🧹 Effacer les contenus existants
     for balise in soup.find_all(lambda tag: tag.has_attr("id")):
         balise.string = ""
         if not balise.string:
             balise.clear()
 
+    # 🚀 Injection des textes
     for el in soup.find_all(attrs={"id": True}):
         id_val = el["id"]
         try:
             table, colonne, ligne_cle = id_val.split("_", 2)
 
             colonne = colonne.replace("Genre", genre)
+
             ligne_cle = (ligne_cle
                          .replace("CdVX", f"CdV{nb_cdv}")
                          .replace("ExpY", f"Exp{nb_exp}")
@@ -64,6 +35,7 @@ async def traiter_injection(request):
                          .replace("AmeQ", f"Ame{nb_ame}"))
 
             texte = get_cell_value(conn, table, colonne, ligne_cle)
+
             if texte is not None:
                 el.clear()
                 lignes = texte.split("\n")
@@ -71,15 +43,16 @@ async def traiter_injection(request):
                     if i > 0:
                         el.append(soup.new_tag("br"))
                     el.append(NavigableString(ligne))
-                print(f"✅ Injection réussie pour ID={id_val} → {table}.{colonne} [{ligne_cle}]", flush=True)
+                print(f"✅ Injection : table={table}, colonne={colonne}, ligne={ligne_cle} (ID={id_val})", flush=True)
             else:
-                print(f"⚠️ Aucun contenu trouvé pour ID={id_val} → {table}.{colonne} [{ligne_cle}]", flush=True)
+                print(f"⚠️ Vide : table={table}, colonne={colonne}, ligne={ligne_cle} (ID={id_val})", flush=True)
         except Exception as e:
-            print(f"⚠️ Problème avec l’ID {id_val} : {e}")
+            print(f"❌ Erreur d'injection ID={id_val} → {e}", flush=True)
             continue
 
     conn.close()
 
+    # 💾 Sauvegarde HTML temporaire
     fichier_id = str(uuid.uuid4())
     base_url = str(request.base_url).rstrip("/")
     url_html = f"{base_url}/html_temp/{fichier_id}/index.html"
@@ -94,13 +67,6 @@ async def traiter_injection(request):
 
     asyncio.create_task(supprimer_fichier_apres_delai(dossier_temporaire, delay=300))
 
-    # 🔊 Afficher  l'URL à fin
     print(f"\n✅ Injection terminée — URL finale : {url_html}\n", flush=True)
-    
-    return {"url_html": url_html}
 
-async def supprimer_fichier_apres_delai(path, delay=300):
-    await asyncio.sleep(delay)
-    if os.path.exists(path):
-        shutil.rmtree(path)
-        print(f"🧹 Dossier temporaire supprimé : {path}")
+    return {"url_html": url_html}
