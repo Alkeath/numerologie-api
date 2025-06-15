@@ -1,3 +1,7 @@
+import asyncio
+import shutil
+import os
+
 async def traiter_injection(request):
     data = await request.json()
 
@@ -73,3 +77,12 @@ async def traiter_injection(request):
     print(f"\n✅ Injection terminée — URL finale : {url_html}\n", flush=True)
 
     return {"url_html": url_html}
+
+
+
+
+async def supprimer_fichier_apres_delai(path, delay=300):
+    await asyncio.sleep(delay)
+    if os.path.exists(path):
+        shutil.rmtree(path)
+        print(f"🧹 Dossier temporaire supprimé : {path}")
