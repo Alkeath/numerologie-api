@@ -6,9 +6,9 @@ import asyncio
 import shutil
 
 # 📁 Déclarations des chemins
-TEMPLATE_HTML_PATH = "app/templates/template_temporaire1/index.html"
-TEMPLATE_DIR = "app/templates/template_temporaire1"
-TEMP_HTML_DIR = "html_genere"
+TEMPLATE_HTML_PATH = "/app/app/templates/template_temporaire1/index.html"
+TEMPLATE_DIR = "/app/app/templates/template_temporaire1"
+TEMP_HTML_DIR = "/app/html_genere"
 
 async def traiter_injection(request):
     try:
