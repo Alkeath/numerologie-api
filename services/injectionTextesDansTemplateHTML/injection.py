@@ -4,6 +4,7 @@ import psycopg2
 import os
 import asyncio
 import shutil
+import uuid
 
 # 📁 Déclarations des chemins
 TEMPLATE_HTML_PATH = "/app/templates/template_temporaire1/index.html"
