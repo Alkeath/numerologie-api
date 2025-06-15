@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from calculs_api import router as calculs_router
-from calculs_api import traitement_etape_1, generer_rapport_depuis_donnees
+from calculs_api import traitement_etape_1, etape_3_injection_textes_dans_html
 
 app = FastAPI()
 
@@ -73,18 +73,20 @@ async def calculs_formulaire(request: Request):
 async def generer_rapport(request: Request):
     print("🧠 Calculs/main : Requête reçue pour génération complète du rapport")
     data = await request.json()
-    return generer_rapport_depuis_donnees(data)
 
-# ✅ Lancement du serveur si exécuté directement (utile pour Docker/Cloud Run)
-if __name__ == "__main__":
-    import os
-    import uvicorn
+    try:
+        resultats = etape_3_injection_textes_dans_html(data)
 
-    # 🔁 Récupération du port depuis les variables d'environnement (Cloud Run impose PORT)
-    port = int(os.environ.get("PORT", 8080))
+        if "erreur" in resultats or not resultats.get("chemin_pdf"):
+            raise ValueError("❌ L'injection ou la génération du PDF a échoué.")
 
-    # 🚀 Démarrage de l’application FastAPI avec Uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+        return resultats
+
+    except Exception as e:
+        print("❌ Erreur dans /genererRapport :", str(e))
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Erreur serveur dans /genererRapport")
 
 
 from fastapi.encoders import jsonable_encoder
