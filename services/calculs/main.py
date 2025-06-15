@@ -1,20 +1,24 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from calculs_api import router as calculs_router
-from calculs_api import traitement_etape_1, etape_3_injection_textes_dans_html
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+from calculs_api import (
+    router as calculs_router,
+    etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance,
+    etape_1_calculs_preliminaires_nombres_principaux,
+    etape_3_injection_textes_dans_html
+)
+import traceback
 
 app = FastAPI()
 
-# ✅ Liste exacte des origines autorisées
+# ✅ CORS
 origines_autorisees = [
     "https://test-recup.vercel.app",
     "https://www.test-recup.vercel.app",
     "http://localhost:3000",
     "http://localhost"
 ]
-
-# ✅ Middleware CORS bien configuré
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origines_autorisees,
@@ -23,66 +27,68 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# ✅ Inclusion des routes API de calcul
+# ✅ Inclusion des routes
 app.include_router(calculs_router)
 
-# ✅ Route POST pour l'étape 1 des calculs
-from fastapi import Request
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
-import traceback
-
-@app.post("/calculs-formulaire")
-async def calculs_formulaire(request: Request):
-    print("✅ [main.py – service calculs] Requête reçue")
+# 🧩 ÉTAPE 0 – Mise en forme prénom/nom/date (sans calculs)
+@app.post("/mise-en-forme-donnees")
+async def mise_en_forme_donnees(request: Request):
+    print("✳️ [main.py] Requête reçue pour mise en forme (étape 0)")
     data = await request.json()
 
     try:
-        # 🔄 Étape 1 : Calculs initiaux (totaux/réduits, avant activation)
-        print("🔄 [main.py – service calculs] Appel à traitement_etape_1...")
-        data = traitement_etape_1(data)
-        print("✅ [main.py – service calculs] traitement_etape_1 terminé")
-
-        # 🧹 Nettoyage des données avant renvoi au frontend
-        print("🧹 [main.py – service calculs] Données prêtes à être renvoyées au frontend")
+        data = etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data)
+        print("✅ Étape 0 – Mise en forme terminée")
         return {
-            "message": "Étape 1 terminée",
-            "donnees": data
+            "message": "Mise en forme effectuée",
+            "donnees": nettoyer_donnees(data)
         }
 
     except Exception as e:
-        print(f"❌ [main.py – service calculs] Exception non capturée : {e}")
-        import traceback
+        print(f"❌ Erreur dans /mise-en-forme-donnees : {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Erreur serveur dans /mise-en-forme-donnees")
+
+
+# 🧩 ÉTAPE 1 – Calculs préliminaires
+@app.post("/calculs-formulaire")
+async def calculs_formulaire(request: Request):
+    print("🔢 [main.py] Requête reçue pour calculs initiaux (étape 1)")
+    data = await request.json()
+
+    try:
+        data = etape_1_calculs_preliminaires_nombres_principaux(data)
+        print("✅ Étape 1 – Calculs initiaux terminés")
+        return {
+            "message": "Calculs préliminaires terminés",
+            "donnees": nettoyer_donnees(data)
+        }
+
+    except Exception as e:
+        print(f"❌ Erreur dans /calculs-formulaire : {e}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erreur serveur dans /calculs-formulaire")
 
 
-
-
-# ✅ Route POST pour l’enchaînement injection HTML + génération PDF (étapes 3 + 4)
+# ✅ Étapes 3 + 4 – Injection texte + génération PDF
 @app.post("/genererRapport")
 async def generer_rapport(request: Request):
-    print("🧠 [main.py – service calculs] : Requête reçue pour génération complète du rapport")
+    print("🧠 [main.py] Requête reçue pour génération complète du rapport")
     data = await request.json()
 
     try:
         resultats = etape_3_injection_textes_dans_html(data)
-
         if "erreur" in resultats or not resultats.get("chemin_pdf"):
-            raise ValueError("❌ [main.py – service calculs] L'injection ou la génération du PDF a échoué.")
-
+            raise ValueError("L'injection ou la génération du PDF a échoué.")
         return resultats
 
     except Exception as e:
-        print("❌ [main.py – service calculs] Erreur dans /genererRapport :", str(e))
-        import traceback
+        print("❌ Erreur dans /genererRapport :", str(e))
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erreur serveur dans /genererRapport")
 
 
-from fastapi.encoders import jsonable_encoder
-
-# ✅ Nettoyage des champs non sérialisables
+# 🧹 Utilitaire de nettoyage JSON
 def nettoyer_donnees(data):
     data_saine = {}
     for k, v in data.items():
@@ -90,6 +96,5 @@ def nettoyer_donnees(data):
             jsonable_encoder(v)
             data_saine[k] = v
         except Exception as e:
-            print(f"⚠️ Clé '{k}' supprimée du retour (non sérialisable, type {type(v)}): {e}")
+            print(f"⚠️ Clé '{k}' ignorée (type {type(v)}): {e}")
     return data_saine
-
