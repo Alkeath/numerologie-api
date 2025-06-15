@@ -33,6 +33,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from datetime import datetime, date
+from typing import Optional
 import unicodedata
 import re
 import requests
@@ -46,6 +47,7 @@ router = APIRouter()
 memoire_utilisateurs = {}
 
 class ChoixUtilisateur(BaseModel):
+    uuidRequete: Optional[str] = None
     Email_Formulaire : str
     ActNbMaitre11: str
     ActNbMaitre22: str
