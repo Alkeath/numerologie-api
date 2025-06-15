@@ -40,7 +40,10 @@ async def traiter_injection(request):
         for el in soup.find_all(attrs={"id": True}):
             id_val = el["id"]
             try:
-                table, colonne, ligne_cle = id_val.split("_", 2)
+                parts = id_val.split("_", 2)
+                if len(parts) != 3:
+                    print(f"❌ ID mal formé (pas 3 parties) : {id_val}", flush=True)
+                    continue
     
                 colonne = colonne.replace("Genre", genre)
     
