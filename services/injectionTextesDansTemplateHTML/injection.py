@@ -14,13 +14,15 @@ TEMP_HTML_DIR = "/app/html_genere"
 async def traiter_injection(request):
     try:
         data = await request.json()
-    
-        print("👌 [injection.py] FONCTION traiter_injection ACTUELLEMENT EXÉCUTÉE ", flush=True)
 
-        # 🪪 Log de l'identifiant unique si présent
-        uuid = data.get("uuidRequete")
-        if uuid:
-            print(f"🔗 UUID de requête : {uuid}")
+        # 🪪 Utilisation de l'UUID fourni (sinon on en génère un)
+        uuid_requete = data.get("uuidRequete")
+        fichier_id = uuid_requete if uuid_requete else str(uuid.uuid4())
+
+        if uuid_requete:
+            print(f"🔗 UUID de requête fourni par le frontend : {uuid_requete}")
+        else:
+            print(f"🆕 Aucun UUID fourni, généré automatiquement : {fichier_id}")
                 
         genre = data.get("Genre_Formulaire", "")
         nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
