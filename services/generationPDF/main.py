@@ -25,14 +25,14 @@ class PDFRequest(BaseModel):
 @app.post("/generationPDF")
 async def generation_pdf_endpoint(payload: PDFRequest):
     html_url = payload.html_url
-    print(f"📥 URL reçue : {html_url}")
-    print("🧾 Payload brut reçu :", payload)
-    print("🔗 URL extraite :", payload.html_url)
+    print(f"📥 [generationPDF - main.py] URL reçue : {html_url}")
+    print("🧾 [generationPDF - main.py] Payload brut reçu :", payload)
+    print("🔗 [generationPDF - main.py] URL extraite :", payload.html_url)
 
     try:
         pdf_path = await convert_html_to_pdf(html_url)
-        print("✅ Chemin PDF généré :", pdf_path)
-        print("📁 Le fichier existe-t-il ?", os.path.exists(pdf_path))
+        print("✅ [generationPDF - main.py] Chemin PDF généré :", pdf_path)
+        print("📁 [generationPDF - main.py] Le fichier existe-t-il ?", os.path.exists(pdf_path))
         return FileResponse(pdf_path, media_type="application/pdf", filename="rapport.pdf")
     except Exception as e:
         print(f"❌ Erreur lors de la génération du PDF : {e}")
