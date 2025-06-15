@@ -491,27 +491,6 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     }
 
 
-    # ✅ Si aucun nombre maître détecté et un seul prénom, on passe directement à l'étape 2
-    if data["Presence11"] == "non" and data["Presence22"] == "non" and not PrenomsSecondaires_Formulaire.strip():
-        data["ActNbMaitre11"] = "non"
-        data["ActNbMaitre22"] = "non"
-        data["ApprocheCalculs"] = "UnPrenomDefaut"
-
-        # Réponses par défaut pour les questions non posées
-        for cle in [
-            "RepAct11_Q1", "RepAct11_Q2", "RepAct11_Q3",
-            "RepAct22_Q1", "RepAct22_Q2", "RepAct22_Q3",
-            "RepExpUnPrenomTousPrenoms",
-            "RepReaUnPrenomTousPrenoms",
-            "RepAmeUnPrenomTousPrenoms"
-        ]:
-            data[cle] = "NonApplicable"
-
-        print("✅ Fin de traitement_etape_1 atteinte avec succès")
-       
-        etape_2_recalculs_final_et_affectations(data)
-
-
 
 
 
@@ -519,7 +498,7 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
 
 def etape_2_recalculs_final_et_affectations(data):
 
-    print("📡 Vérification : appel_etape_2 bien reçue (début fonction étape 2)")
+    print("📡 [calculs_api.py] Vérification : appel_etape_2 bien reçue (début fonction étape 2)")
 
     # 0. Récupération de la variable Genre
     data["Genre_Formulaire"] = data.get("Genre_Formulaire", "")
@@ -625,7 +604,7 @@ def etape_2_recalculs_final_et_affectations(data):
 
 
     # pour visualiser les réslutat dans la console serveur ou Railway
-    print("=== Données après étape 2 ===")
+    print("[calculs_api.py]  === Données après étape 2 ===")
     for cle, valeur in data.items():
         print(f"{cle} : {valeur}")
 
