@@ -1,6 +1,9 @@
 async def traiter_injection(request):
     data = await request.json()
 
+    print("👌 [injection.py] FONCTION traiter_injection ACTUELLEMENT EXÉCUTÉE ", flush=True)
+
+    
     genre = data.get("Genre_Formulaire", "")
     nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
     nb_exp = str(data.get("NbExp_Final", "")).zfill(2)
