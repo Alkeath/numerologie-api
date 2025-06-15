@@ -611,7 +611,7 @@ def etape_2_recalculs_final_et_affectations(data):
         print(f"{cle} : {valeur}")
 
     #appel de la fonction de l'étape 3
-    data["url_html"] = etape_3_injection_textes_dans_html(data)
+    #data["url_html"] = etape_3_injection_textes_dans_html(data)
 
 
 
