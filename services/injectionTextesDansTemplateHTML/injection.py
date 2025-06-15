@@ -44,6 +44,7 @@ async def traiter_injection(request):
                 if len(parts) != 3:
                     print(f"❌ ID mal formé (pas 3 parties) : {id_val}", flush=True)
                     continue
+                table, colonne, ligne_cle = parts
     
                 colonne = colonne.replace("Genre", genre)
     
