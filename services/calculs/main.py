@@ -45,13 +45,18 @@ async def calculs_formulaire(request: Request):
         # 🚫 Si aucun maître ni deuxième prénom → génération directe
         if data.get("Presence11") != "oui" and data.get("Presence22") != "oui" and not data.get("PrenomsSecondaires"):
             print("🚫 [main.py – service calculs] Aucun maître et aucun 2e prénom : génération directe du rapport")
-            resultats_pdf = generer_rapport_depuis_donnees(data)
-
-            data["chemin_pdf"] = resultats_pdf.get("chemin_pdf", "")
-            data["url_html"] = resultats_pdf.get("url_html", "")
-            
-            if "erreur" in resultats_pdf:
-                print("❌ [main.py – service calculs] PDF non généré correctement")
+            try:
+                resultats = etape_3_injection_textes_dans_html(data)
+        
+                if "erreur" in resultats or not resultats.get("chemin_pdf"):
+                    raise ValueError("❌ [main.py – service calculs - cas sans nb maître ni 2ème prenom] L'injection ou la génération du PDF a échoué.")
+                return resultats
+            except Exception as e:
+                print("❌ [main.py – service calculs - cas sans nb maître ni 2ème prenom] Erreur dans /genererRapport :", str(e))
+                import traceback
+                traceback.print_exc()
+                raise HTTPException(status_code=500, detail="Erreur serveur dans /genererRapport")
+        
         else:
             print("🕓 [main.py – service calculs] Modales attendues : pas de génération directe")
 
@@ -71,19 +76,19 @@ async def calculs_formulaire(request: Request):
 # ✅ Route POST pour l’enchaînement injection HTML + génération PDF (étapes 3 + 4)
 @app.post("/genererRapport")
 async def generer_rapport(request: Request):
-    print("🧠 Calculs/main : Requête reçue pour génération complète du rapport")
+    print("🧠 [main.py – service calculs] : Requête reçue pour génération complète du rapport")
     data = await request.json()
 
     try:
         resultats = etape_3_injection_textes_dans_html(data)
 
         if "erreur" in resultats or not resultats.get("chemin_pdf"):
-            raise ValueError("❌ L'injection ou la génération du PDF a échoué.")
+            raise ValueError("❌ [main.py – service calculs] L'injection ou la génération du PDF a échoué.")
 
         return resultats
 
     except Exception as e:
-        print("❌ Erreur dans /genererRapport :", str(e))
+        print("❌ [main.py – service calculs] Erreur dans /genererRapport :", str(e))
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Erreur serveur dans /genererRapport")
