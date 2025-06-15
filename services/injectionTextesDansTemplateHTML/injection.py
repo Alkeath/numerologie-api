@@ -15,7 +15,12 @@ async def traiter_injection(request):
         data = await request.json()
     
         print("👌 [injection.py] FONCTION traiter_injection ACTUELLEMENT EXÉCUTÉE ", flush=True)
-        
+
+        # 🪪 Log de l'identifiant unique si présent
+        uuid = data.get("uuidRequete")
+        if uuid:
+            print(f"🔗 UUID de requête : {uuid}")
+                
         genre = data.get("Genre_Formulaire", "")
         nb_cdv = str(data.get("NbCdV_Final", "")).zfill(2)
         nb_exp = str(data.get("NbExp_Final", "")).zfill(2)
