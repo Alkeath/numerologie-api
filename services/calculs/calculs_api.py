@@ -401,6 +401,8 @@ def etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data):
     else:
         data["DateDeNaissance"] = ""
 
+    return data
+
 
 
 
