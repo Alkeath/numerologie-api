@@ -501,8 +501,6 @@ def etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data):
 
 
 
-
-
 ########### Etape 2 ################
 
 def etape_2_recalculs_final_et_affectations(data):
