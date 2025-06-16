@@ -696,7 +696,7 @@ def etape_4_generation_pdf_depuis_html(url_html: str):
 
 #############fonctions pour lancer les scripts des étapes depuis main.py
 
-def traitement_etape_1(data):
-    lignes = []  # pas utilisé ici mais conservé pour cohérence future
-    etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
-    return data
+#def traitement_etape_1(data):
+#    lignes = []  # pas utilisé ici mais conservé pour cohérence future
+#    etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
+#    return data
