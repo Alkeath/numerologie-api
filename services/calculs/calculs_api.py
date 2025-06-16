@@ -353,11 +353,9 @@ def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
 
 
 
-
-########### Etape 0 ################
-
-# Etape 0 : traiement des données entrées, formatage des prénoms nom et date de naissance 
-def etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data):
+# Etape 1 : traiement des données entrées, calculs, jusqu'aux qestions pour savoir
+# si le nombres maîtres sont activés où pas s'il y a des 11 ou 22
+def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
     
     # Récupération des champs bruts depuis le formulaire
     Genre_Formulaire = data.get("Genre_Formulaire", "").strip()
@@ -370,48 +368,34 @@ def etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data):
 
     # Étape 1 : nettoyage
     PrenomPremier = nettoyer_chaine_nom_prenom(PrenomPremier_Formulaire, majuscules=False)
-    PrenomsSecondaires = nettoyer_chaine_nom_prenom(PrenomsSecondaires_Formulaire, majuscules=False)
-    PrenomsComplets = f"{PrenomPremier} {PrenomsSecondaires}".strip()
+    PrenomsComplets = f"{PrenomPremier} {nettoyer_chaine_nom_prenom(PrenomsSecondaires_Formulaire, majuscules=False)}".strip()
     Nom = nettoyer_chaine_nom_prenom(Nom_Formulaire, majuscules=True)
-   
+
     # Étape 2 : normalisation
     PrenomPremier_normalise = normaliser_chaine(PrenomPremier)
     PrenomsComplets_normalise = normaliser_chaine(PrenomsComplets)
     Nom_normalise = normaliser_chaine(Nom)
-   
+
     # Sauvegarde dans les variables de travail
     data["Genre_Formulaire"] = Genre_Formulaire
     data["PrenomPremier"] = PrenomPremier
-    data["PrenomsSecondaires"] = PrenomsSecondaires
     data["PrenomsComplets"] = PrenomsComplets
     data["Nom"] = Nom
+   data["PrenomsNomFormates"] = f"{PrenomsComplets} {Nom}"
     data["PrenomPremier_normalise"] = PrenomPremier_normalise
     data["PrenomsComplets_normalise"] = PrenomsComplets_normalise
     data["Nom_normalise"] = Nom_normalise
-    data["PrenomNom_UnPrenom"] = f"{PrenomPremier} {Nom}"
-    data["PrenomNom_TousPrenoms"] = f"{PrenomsComplets} {Nom}"
+    data["PrenomNom_UnPrenom"] = f"{data['PrenomPremier']} {data['Nom']}"
+    data["PrenomNom_TousPrenoms"] = f"{data['PrenomsComplets']} {data['Nom']}"
+
    
-    # ✅ Variable pour affichage utilisateur : version formatée (sans normalisation)
-    data["PrenomsNomFormates"] = f"{PrenomsComplets} {Nom}"
-
-
     # Constitution de la date de naissance au format JJ/MM/AAAA
     if Jour_Formulaire and Mois_Formulaire and Annee_Formulaire:
         data["DateDeNaissance"] = f"{Jour_Formulaire.zfill(2)}/{Mois_Formulaire.zfill(2)}/{Annee_Formulaire}"
     else:
         data["DateDeNaissance"] = ""
 
-    return data
-
-
-
-
-########### Etape 1 ################
-
-# Etape 1 : premiers calculs partiels des nombres à envoyer au backend pour poser des questions supplémentaires 
-
-def etape_1_calculs_preliminaires_nombres_principaux(data):
-    # 📅 Calcul du chemin de vie
+    # Calcul du chemin de vie
     chiffres_date = [int(c) for c in data.get("DateDeNaissance", "") if c.isdigit()]
     total_cdv = sum(chiffres_date)
     reduit_cdv = ReductionNombre(total_cdv)
@@ -428,6 +412,7 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
         texte = textes[prefixe]
         total_exp = total_ame = total_rea = 0
 
+        # 🧮 On parcourt chaque lettre pour calculer les totaux
         for lettre in texte:
             if lettre.isalpha():
                 val = valeur_lettre(lettre)
@@ -437,6 +422,7 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
                 else:
                     total_rea += val
 
+        # 💾 Enregistrement des totaux et des versions réduites (AvantTestAct)
         data[f"NbExpTotal_{prefixe}"] = str(total_exp)
         data[f"NbReaTotal_{prefixe}"] = str(total_rea)
         data[f"NbAmeTotal_{prefixe}"] = str(total_ame)
@@ -444,7 +430,8 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
         data[f"NbRea_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_rea))
         data[f"NbAme_{prefixe}_AvantTestAct"] = str(ReductionNombre(total_ame))
 
-    # 🔍 Détection des maîtres
+
+    # 🔍 Détection d’un 11 ou 22 dans les 4 nombres principaux
     valeurs = [
         data.get("NbCdV_AvantTestAct", ""),
         data.get("NbExp_UnPrenom_AvantTestAct", ""),
@@ -456,19 +443,20 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
     ]
     data["Presence11"] = "oui" if "11" in valeurs else "non"
     data["Presence22"] = "oui" if "22" in valeurs else "non"
-
-    # 🔧 Ajustement en fonction des activations
+   
+    # 🔧 Fonction interne pour appliquer les règles d’activation des maîtres
     def ajuster(val, act11, act22):
         try:
             v = int(val)
         except:
-            return val
-        if v == 11 and act11 == "non":
+            return val  # On laisse la valeur telle quelle si elle n'est pas un entier
+        if v == 11 and act11 == 'non':
             return 2
-        if v == 22 and act22 == "non":
+        if v == 22 and act22 == 'non':
             return 4
         return v
-
+   
+    # 🧩 Génération de toutes les variantes _Si11/22Act/Desact pour chaque combinaison
     combinaisons = [
         ("oui", "non", "Si11Act22Desact"),
         ("non", "oui", "Si11Desact22Act"),
@@ -477,7 +465,7 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
     ]
     noms = ["Exp", "Rea", "Ame"]
     types = ["UnPrenom", "TousPrenoms"]
-
+   
     for nom in noms:
         for type_prenom in types:
             valeur_avant = data.get(f"Nb{nom}_{type_prenom}_AvantTestAct", "")
@@ -485,11 +473,13 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
                 cle_finale = f"Nb{nom}_{type_prenom}_{suffixe}"
                 data[cle_finale] = ajuster(valeur_avant, act11, act22)
 
+    # 🧩 Ajout des 4 variantes du Chemin de Vie
     valeur_cdv_avant = data.get("NbCdV_AvantTestAct", "")
     for act11, act22, suffixe in combinaisons:
-        data[f"NbCdV_{suffixe}"] = ajuster(valeur_cdv_avant, act11, act22)
+        cle_cdv = f"NbCdV_{suffixe}"
+        data[cle_cdv] = ajuster(valeur_cdv_avant, act11, act22)
 
-    # 💾 Sauvegarde pour étape 2
+    # 📦 Mémorisation des données essentielles pour étape 2
     memoire_utilisateurs[data["Email_Formulaire"]] = {
         "Nom": data["Nom"],
         "PrenomPremier": data["PrenomPremier"],
@@ -500,8 +490,6 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
         "DateDeNaissance": data["DateDeNaissance"],
         "Genre_Formulaire": data["Genre_Formulaire"]
     }
-
-    return data
 
 
 
@@ -698,5 +686,5 @@ def etape_4_generation_pdf_depuis_html(url_html: str):
 
 def traitement_etape_1(data):
     lignes = []  # pas utilisé ici mais conservé pour cohérence future
-    etape_1_calculs_preliminaires_nombres_principaux(data, lignes)
+    etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     return data
