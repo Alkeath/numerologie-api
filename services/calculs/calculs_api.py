@@ -501,6 +501,11 @@ def etape_1_calculs_preliminaires_nombres_principaux(data):
         "Genre_Formulaire": data["Genre_Formulaire"]
     }
 
+return data
+
+
+
+
 
 
 ########### Etape 2 ################
