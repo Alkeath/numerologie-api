@@ -30,44 +30,43 @@ app.add_middleware(
 # ✅ Inclusion des routes
 app.include_router(calculs_router)
 
-# 🧩 ÉTAPE 0 – Mise en forme prénom/nom/date (sans calculs)
-@app.post("/mise-en-forme-donnees")
-async def mise_en_forme_donnees(request: Request):
-    print("✳️ [main.py] Requête reçue pour mise en forme (étape 0)")
-    data = await request.json()
-
-    try:
-        data = etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data)
-        print("✅ Étape 0 – Mise en forme terminée")
-        return {
-            "message": "Mise en forme effectuée",
-            "donnees": nettoyer_donnees(data)
-        }
-
-    except Exception as e:
-        print(f"❌ Erreur dans /mise-en-forme-donnees : {e}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail="Erreur serveur dans /mise-en-forme-donnees")
-
-
-# 🧩 ÉTAPE 1 – Calculs préliminaires
 @app.post("/calculs-formulaire")
 async def calculs_formulaire(request: Request):
-    print("🔢 [main.py] Requête reçue pour calculs initiaux (étape 1)")
+    print("✅ [main.py – service calculs] Requête reçue")
     data = await request.json()
 
     try:
-        data = etape_1_calculs_preliminaires_nombres_principaux(data)
-        print("✅ Étape 1 – Calculs initiaux terminés")
+        print("🔄 [main.py – service calculs] Appel à traitement_etape_1...")
+        data = traitement_etape_1(data)
+        print("✅ [main.py – service calculs] traitement_etape_1 terminé")
+
+        # 🚫 Si aucun maître ni deuxième prénom → génération directe
+        if data.get("Presence11") != "oui" and data.get("Presence22") != "oui" and not data.get("PrenomsSecondaires"):
+            print("🚫 [main.py – service calculs] Aucun maître et aucun 2e prénom : génération directe du rapport")
+            try:
+                resultats = etape_3_injection_textes_dans_html(data)
+        
+                if "erreur" in resultats or not resultats.get("chemin_pdf"):
+                    raise ValueError("❌ [main.py – service calculs - cas sans nb maître ni 2ème prenom] L'injection ou la génération du PDF a échoué.")
+                return resultats
+            except Exception as e:
+                print("❌ [main.py – service calculs - cas sans nb maître ni 2ème prenom] Erreur dans /genererRapport :", str(e))
+                import traceback
+                traceback.print_exc()
+                raise HTTPException(status_code=500, detail="Erreur serveur dans /genererRapport")
+        
+        else:
+            print("🕓 [main.py – service calculs] Modales attendues : pas de génération directe")
+
+        print("🧹 [main.py – service calculs] Nettoyage des données avant envoi au frontend")
         return {
-            "message": "Calculs préliminaires terminés",
-            "donnees": nettoyer_donnees(data)
+            "message": "Étape 1 terminée",
+            "donnees": data
         }
 
     except Exception as e:
-        print(f"❌ Erreur dans /calculs-formulaire : {e}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail="Erreur serveur dans /calculs-formulaire")
+        print(f"❌ [main.py – service calculs] Exception non capturée : {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ✅ Étapes 3 + 4 – Injection texte + génération PDF
