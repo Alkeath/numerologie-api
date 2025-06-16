@@ -2,13 +2,9 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from calculs_api import (
-    router as calculs_router,
-    etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance,
-    etape_1_calculs_preliminaires_nombres_principaux,
-    etape_3_injection_textes_dans_html
-)
-import traceback
+from calculs_api import router as calculs_router
+from calculs_api import traitement_etape_1
+from calculs_api import etape_3_injection_textes_dans_html
 
 app = FastAPI()
 
