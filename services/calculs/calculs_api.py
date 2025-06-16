@@ -408,7 +408,7 @@ def etape_0_mise_en_forme_prenoms_nom_et_date_de_naissance(data):
 
 # Etape 1 : premiers calculs partiels des nombres à envoyer au backend pour poser des questions supplémentaires 
 
- def etape_1_calculs_preliminaires_nombres_principaux(data):
+def etape_1_calculs_preliminaires_nombres_principaux(data):
     # 📅 Calcul du chemin de vie
     chiffres_date = [int(c) for c in data.get("DateDeNaissance", "") if c.isdigit()]
     total_cdv = sum(chiffres_date)
@@ -693,34 +693,3 @@ def traitement_etape_1(data):
     lignes = []  # pas utilisé ici mais conservé pour cohérence future
     etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     return data
-
-"""
-def generer_rapport_depuis_donnees(data: dict):
-    try:
-        print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
-        url_html = etape_3_injection_textes_dans_html(data)
-
-        if not url_html:
-            raise ValueError("❌ L'injection des textes a échoué. Aucun URL HTML retourné.")
-
-        print("📄 [calculs_api.py] HTML généré :", url_html)
-
-        print("📦 [calculs_api.py] Étape 4 : Génération du PDF depuis le HTML")
-        chemin_pdf = etape_4_generation_pdf_depuis_html(url_html)
-
-        if not chemin_pdf:
-            raise ValueError("❌ La génération du PDF a échoué. Aucun chemin PDF retourné.")
-
-        return {
-            "chemin_pdf": chemin_pdf,
-            "url_html": url_html
-        }
-
-    except Exception as e:
-        print("❌ [calculs_api.py] Erreur dans generer_rapport_depuis_donnees :", str(e))
-        return {"erreur": str(e)}
-"""
-
-
-
-
