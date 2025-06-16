@@ -353,6 +353,9 @@ def calcul_elements_date_naissance(date_str, date_du_jour_str=None):
 
 
 
+
+########### Etape 1 ################
+
 # Etape 1 : traiement des données entrées, calculs, jusqu'aux qestions pour savoir
 # si le nombres maîtres sont activés où pas s'il y a des 11 ou 22
 def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes):
@@ -381,14 +384,12 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     data["PrenomPremier"] = PrenomPremier
     data["PrenomsComplets"] = PrenomsComplets
     data["Nom"] = Nom
-   data["PrenomsNomFormates"] = f"{PrenomsComplets} {Nom}"
     data["PrenomPremier_normalise"] = PrenomPremier_normalise
     data["PrenomsComplets_normalise"] = PrenomsComplets_normalise
     data["Nom_normalise"] = Nom_normalise
     data["PrenomNom_UnPrenom"] = f"{data['PrenomPremier']} {data['Nom']}"
     data["PrenomNom_TousPrenoms"] = f"{data['PrenomsComplets']} {data['Nom']}"
 
-   
     # Constitution de la date de naissance au format JJ/MM/AAAA
     if Jour_Formulaire and Mois_Formulaire and Annee_Formulaire:
         data["DateDeNaissance"] = f"{Jour_Formulaire.zfill(2)}/{Mois_Formulaire.zfill(2)}/{Annee_Formulaire}"
@@ -490,7 +491,6 @@ def etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
         "DateDeNaissance": data["DateDeNaissance"],
         "Genre_Formulaire": data["Genre_Formulaire"]
     }
-
 
 
 
@@ -688,3 +688,33 @@ def traitement_etape_1(data):
     lignes = []  # pas utilisé ici mais conservé pour cohérence future
     etape_1_preparer_variables_initiales_et_calculs_avant_test_act(data, lignes)
     return data
+
+"""
+def generer_rapport_depuis_donnees(data: dict):
+    try:
+        print("🧩 [calculs_api.py] Étape 3 : Injection des textes et génération PDF")
+        url_html = etape_3_injection_textes_dans_html(data)
+
+        if not url_html:
+            raise ValueError("❌ L'injection des textes a échoué. Aucun URL HTML retourné.")
+
+        print("📄 [calculs_api.py] HTML généré :", url_html)
+
+        print("📦 [calculs_api.py] Étape 4 : Génération du PDF depuis le HTML")
+        chemin_pdf = etape_4_generation_pdf_depuis_html(url_html)
+
+        if not chemin_pdf:
+            raise ValueError("❌ La génération du PDF a échoué. Aucun chemin PDF retourné.")
+
+        return {
+            "chemin_pdf": chemin_pdf,
+            "url_html": url_html
+        }
+
+    except Exception as e:
+        print("❌ [calculs_api.py] Erreur dans generer_rapport_depuis_donnees :", str(e))
+        return {"erreur": str(e)}
+"""
+
+
+
